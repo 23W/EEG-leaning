@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EEGCore\EEGCore.csproj" />
+    <ProjectReference Include="..\Libraries\oxyplot\Source\OxyPlot.WindowsForms\OxyPlot.WindowsForms.csproj" />
+    <ProjectReference Include="..\Libraries\oxyplot\Source\OxyPlot\OxyPlot.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="EEGData\Test1\EEG Eye State.arff">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="EEGData\Test1\info.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
