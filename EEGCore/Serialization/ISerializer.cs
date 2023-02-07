@@ -2,12 +2,12 @@
 
 namespace EEGCore.Serialization
 {
-    internal interface ISerializer
+    internal interface IRecordSerializer
     {
         internal void Serialize(Data.Record record, Stream stream, Encoding? encoding = default);
     }
 
-    internal interface IDeserializer
+    internal interface IRecordDeserializer
     {
         internal Data.Record Deserialize(Stream stream, Encoding? encoding = default);
     }

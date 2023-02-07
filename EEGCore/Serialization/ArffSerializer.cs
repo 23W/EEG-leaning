@@ -3,11 +3,11 @@ using System.Text;
 
 namespace EEGCore.Serialization
 {
-    internal class ArffSerializer : ISerializer, IDeserializer
+    internal class ArffSerializer : IRecordSerializer, IRecordDeserializer
     {
         internal const string ArffExtension = ".arff";
 
-        Data.Record IDeserializer.Deserialize(Stream stream, Encoding? encoding)
+        Data.Record IRecordDeserializer.Deserialize(Stream stream, Encoding? encoding)
         {
             var res = new Data.Record();
 
@@ -64,9 +64,28 @@ namespace EEGCore.Serialization
             return res;
         }
 
-        void ISerializer.Serialize(Data.Record record, Stream stream, Encoding? encoding)
+        void IRecordSerializer.Serialize(Data.Record record, Stream stream, Encoding? encoding)
         {
-            throw new NotImplementedException();
+            using (var arffWriter = encoding == default ? new ArffWriter(stream) : new ArffWriter(stream, encoding))
+            {
+                arffWriter.WriteRelationName(record.Name);
+
+                foreach(var lead in record.Leads)
+                {
+                    arffWriter.WriteAttribute(new ArffAttribute(lead.Name, ArffAttributeType.Numeric));
+                }
+
+                for (var frameIndex = 0; frameIndex<record.Duration; frameIndex++) 
+                {
+                    var frame = new object[record.LeadsCount];
+                    for(var leadIndex = 0; leadIndex<record.LeadsCount; leadIndex++)
+                    {
+                        frame[leadIndex] = record.Leads[leadIndex].Samples[frameIndex];
+                    }
+
+                    arffWriter.WriteInstance(frame);
+                }
+            }
         }
     }
 }

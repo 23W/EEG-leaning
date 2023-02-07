@@ -28,6 +28,21 @@ namespace EEGCleaning
             ViewModel.CurrentRecord = ViewModel.SourceRecord;
         }
 
+        void SaveRecord(string path)
+        {
+            var factory = new RecordFactory();
+
+            switch (ViewModel.ViewMode)
+            {
+                case ModelViewMode.Record:
+                    factory.ToFile(path, ViewModel.CurrentRecord);
+                    break;
+                case ModelViewMode.ICA:
+                    factory.ToFile(path, ViewModel.IndependentComponents);
+                    break;
+            }
+        }
+
         void RunICA()
         {
             var ica = new FastICA()
@@ -199,6 +214,16 @@ namespace EEGCleaning
             {
                 LoadRecord(m_openFileDialog.FileName, RecordFactoryOptions.DefaultEEG);
                 UpdatePlot(ModelViewMode.Record);
+            }
+        }
+
+        private void OnSaveData(object sender, EventArgs e)
+        {
+            m_saveFileDialog.InitialDirectory = Directory.GetCurrentDirectory();
+
+            if (m_saveFileDialog.ShowDialog(this) == DialogResult.OK)
+            {
+                SaveRecord(m_saveFileDialog.FileName);
             }
         }
     }

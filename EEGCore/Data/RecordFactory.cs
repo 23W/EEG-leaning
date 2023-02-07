@@ -32,7 +32,7 @@ namespace EEGCore.Data
         {
             var res = default(Record);
 
-            var deserializer = default(IDeserializer);
+            var deserializer = default(IRecordDeserializer);
 
             var ext = Path.GetExtension(filename);
             switch (ext)
@@ -100,6 +100,31 @@ namespace EEGCore.Data
             }
 
             return res;
+        }
+
+        public void ToFile(string filename, Record record)
+        {
+            var serializer = default(IRecordSerializer);
+
+            var ext = Path.GetExtension(filename);
+            switch (ext)
+            {
+                case ArffSerializer.ArffExtension:
+                    {
+                        serializer = new ArffSerializer();
+                        break;
+                    }
+            }
+
+            if (serializer == default)
+            {
+                throw new Exception("Unsupported format");
+            }
+
+            using (var stream = new FileStream(filename, FileMode.Create, FileAccess.ReadWrite))
+            {
+                serializer.Serialize(record, stream);
+            }
         }
     }
 }

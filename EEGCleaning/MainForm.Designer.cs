@@ -40,6 +40,8 @@
             this.m_loadContextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.loadEEGToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.loadTestDataToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.m_saveFileDialog = new System.Windows.Forms.SaveFileDialog();
+            this.m_saveButton = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.m_xTrackBar)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.m_yTrackBar)).BeginInit();
             this.m_loadContextMenuStrip.SuspendLayout();
@@ -123,13 +125,13 @@
             // 
             // m_openFileDialog
             // 
-            this.m_openFileDialog.Filter = "ARFF files|*.arff|CSV files|*.csv|All files|*.*";
+            this.m_openFileDialog.Filter = "ARFF files|*.arff|All files|*.*";
             // 
             // m_loadButton
             // 
             this.m_loadButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.m_loadButton.BackColor = System.Drawing.SystemColors.Control;
-            this.m_loadButton.Location = new System.Drawing.Point(1003, 599);
+            this.m_loadButton.Location = new System.Drawing.Point(903, 599);
             this.m_loadButton.Menu = this.m_loadContextMenuStrip;
             this.m_loadButton.Name = "m_loadButton";
             this.m_loadButton.Size = new System.Drawing.Size(94, 29);
@@ -160,12 +162,30 @@
             this.loadTestDataToolStripMenuItem.Text = "Load Test Data";
             this.loadTestDataToolStripMenuItem.Click += new System.EventHandler(this.OnLoadTestData);
             // 
+            // m_saveFileDialog
+            // 
+            this.m_saveFileDialog.DefaultExt = "arff";
+            this.m_saveFileDialog.Filter = "ARFF files|*.arff|All files|*.*";
+            // 
+            // m_saveButton
+            // 
+            this.m_saveButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.m_saveButton.BackColor = System.Drawing.SystemColors.Control;
+            this.m_saveButton.Location = new System.Drawing.Point(1003, 599);
+            this.m_saveButton.Name = "m_saveButton";
+            this.m_saveButton.Size = new System.Drawing.Size(94, 29);
+            this.m_saveButton.TabIndex = 6;
+            this.m_saveButton.Text = "Save";
+            this.m_saveButton.UseVisualStyleBackColor = false;
+            this.m_saveButton.Click += new System.EventHandler(this.OnSaveData);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
             this.ClientSize = new System.Drawing.Size(1109, 653);
+            this.Controls.Add(this.m_saveButton);
             this.Controls.Add(this.m_loadButton);
             this.Controls.Add(this.m_icaButton);
             this.Controls.Add(this.m_yLabel);
@@ -197,5 +217,7 @@
         private ContextMenuStrip m_loadContextMenuStrip;
         private ToolStripMenuItem loadEEGToolStripMenuItem;
         private ToolStripMenuItem loadTestDataToolStripMenuItem;
+        private SaveFileDialog m_saveFileDialog;
+        private Button m_saveButton;
     }
 }
