@@ -14,6 +14,16 @@ namespace EEGCore.Data
         public double? CutOffLowFreq { get; set; } = null;
 
         public double? CutOffHighFreq { get; set; } = null;
+
+        public static RecordFactoryOptions DefaultEEG => new RecordFactoryOptions()
+        {
+            ZeroMean = true,
+            SortLeads = true,
+            CutOffLowFreq = 0.3,
+            CutOffHighFreq = 45,
+        };
+
+        public static RecordFactoryOptions DefaultEmpty => new RecordFactoryOptions();
     }
 
     public class RecordFactory
@@ -64,7 +74,7 @@ namespace EEGCore.Data
                 var filter = FilterFactory.BuildBandPassFilter(res.SampleRate, cutOffLow.Value, cutOffHigh.Value);
                 foreach (var lead in res.Leads)
                 {
-                    lead.Samples = filter.Process(lead.Samples);
+                    filter.ProcessInplace(lead);
                 }
             }
             else if (cutOffLow.HasValue)
@@ -72,7 +82,7 @@ namespace EEGCore.Data
                 var filter = FilterFactory.BuildHighPassFilter(res.SampleRate, cutOffLow.Value);
                 foreach (var lead in res.Leads)
                 {
-                    lead.Samples = filter.Process(lead.Samples);
+                    filter.ProcessInplace(lead);
                 }
             }
             else if (cutOffHigh.HasValue)
@@ -80,7 +90,7 @@ namespace EEGCore.Data
                 var filter = FilterFactory.BuildLowPassFilter(res.SampleRate, cutOffHigh.Value);
                 foreach (var lead in res.Leads)
                 {
-                    lead.Samples = filter.Process(lead.Samples);
+                    filter.ProcessInplace(lead);
                 }
             }
 

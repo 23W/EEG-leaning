@@ -16,6 +16,7 @@ namespace EEGCleaning.Utilities
                 case LeadType.Parietal: res = OxyColors.DarkOliveGreen; break;
                 case LeadType.Temporal: res = OxyColors.DarkOrange; break;
                 case LeadType.Occipital: res = OxyColors.DarkRed; break;
+                case LeadType.IndependenctComponent: res = OxyColors.DarkOrange; break;
             }
 
             return res;

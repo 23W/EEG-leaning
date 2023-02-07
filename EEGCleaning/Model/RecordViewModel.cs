@@ -1,4 +1,5 @@
 ﻿using EEGCore.Data;
+using EEGCore.Processing.ICA;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,17 +8,23 @@ using System.Threading.Tasks;
 
 namespace EEGCleaning.Model
 {
+    internal enum ModelViewMode
+    {
+        Record,
+        ICA
+    };
+
     internal class RecordViewModel
     {
-        internal RecordFactoryOptions RecordOptions { get; set; } = new RecordFactoryOptions()
-        {
-            ZeroMean = true,
-            SortLeads = true,
-            CutOffLowFreq = 0.3,
-            CutOffHighFreq = 45,
-        };
+        internal ModelViewMode ViewMode { get; set; } = ModelViewMode.Record;
 
-        internal Record Record { get; set; } = new Record();
+        internal RecordFactoryOptions RecordOptions { get; set; } = RecordFactoryOptions.DefaultEEG;
+
+        internal Record SourceRecord { get; set; } = new Record();
+
+        internal Record CurrentRecord { get; set; } = new Record();
+
+        internal ICARecord IndependentComponents { get; set; } = new ICARecord();
 
         internal double ScaleX { get; set; } = 1;
 

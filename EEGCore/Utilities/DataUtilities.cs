@@ -35,10 +35,10 @@ namespace EEGCore.Utilities
 
         internal static int ComparetTo(Lead l1, Lead l2)
         {
-            var res = (l2.LeadType - l1.LeadType);
+            var res = (l1.LeadType - l2.LeadType);
             if (res == 0)
             {
-                res = l2.Name.CompareTo(l1.Name);
+                res = l1.Name.CompareTo(l2.Name);
             }
 
             return res;

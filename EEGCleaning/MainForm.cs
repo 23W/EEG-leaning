@@ -1,14 +1,12 @@
-using EEGCore.Data;
-using EEGCore.Processing;
+using CsvHelper;
 using EEGCleaning.Model;
 using EEGCleaning.Utilities;
+using EEGCore.Data;
+using EEGCore.Processing;
+using EEGCore.Processing.ICA;
 using OxyPlot;
 using OxyPlot.Axes;
 using OxyPlot.Series;
-using OxyPlot.WindowsForms;
-using System;
-using System.Linq;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
 
 namespace EEGCleaning
 {
@@ -21,18 +19,61 @@ namespace EEGCleaning
             InitializeComponent();
         }
 
-        void LoadRecord()
+        void LoadRecord(string path, RecordFactoryOptions options)
         {
             var factory = new RecordFactory();
-            var factoryOptions = ViewModel.RecordOptions;
 
-            ViewModel.Record = factory.FromFile(@".\EEGData\Test1\EEG Eye State.arff", factoryOptions);
+            ViewModel.SourceRecord = factory.FromFile(path, options);
+            ViewModel.RecordOptions = options;
+            ViewModel.CurrentRecord = ViewModel.SourceRecord;
         }
 
-        void UpdatePlot()
+        void RunICA()
         {
+            var ica = new FastICA()
+            {
+                Estimation = FastICA.NonGaussianityEstimation.LogCosh,
+                MaxIterationCount = 10000,
+                Tolerance = 1E-06,
+            };
+
+            ViewModel.IndependentComponents = ica.Solve(ViewModel.CurrentRecord);
+        }
+
+        void UpdatePlot(ModelViewMode viewMode)
+        {
+            ViewModel.ViewMode = viewMode;
+            ViewModel.ScaleX = 1;
+            ViewModel.ScaleY = 1;
+
             var plotModel = new PlotModel();
 
+            switch (ViewModel.ViewMode)
+            {
+                case ModelViewMode.Record:
+                    PopulatedPlotModel(plotModel, ViewModel.CurrentRecord);
+                    break;
+
+                case ModelViewMode.ICA:
+                    PopulatedPlotModel(plotModel, ViewModel.IndependentComponents);
+                    break;
+            }
+
+            m_plotView.Model = plotModel;
+            m_plotView.ActualController.UnbindAll();
+            m_plotView.ActualController.BindMouseDown(OxyMouseButton.Left, PlotCommands.Track);
+            m_plotView.ActualController.BindMouseDown(OxyMouseButton.Right, PlotCommands.PanAt);
+
+            m_xTrackBar.Value = (int)ViewModel.ScaleX - 1;
+            m_yTrackBar.Value = (int)(ViewModel.ScaleY * 10) - 10;
+
+            m_icaButton.BackColor = (ViewModel.ViewMode== ModelViewMode.ICA) ? SystemColors.ControlDark : SystemColors.Control;
+
+            UpdateZoom();
+        }
+
+        void PopulatedPlotModel(PlotModel plotModel, Record record)
+        {
             var xAxis = new TimeSpanAxis()
             {
                 Position = AxisPosition.Bottom,
@@ -40,23 +81,24 @@ namespace EEGCleaning
                 MinorGridlineStyle = LineStyle.Solid,
                 FontSize = 9,
                 AbsoluteMinimum = 0,
-                AbsoluteMaximum = ViewModel.Record.Duration / ViewModel.Record.SampleRate,
+                AbsoluteMaximum = record.Duration / record.SampleRate,
             };
             plotModel.Axes.Add(xAxis);
 
-            var maxSignalAmpl = ViewModel.Record.GetMaximumAbsoluteValue();
+            var maxSignalAmpl = record.GetMaximumAbsoluteValue();
             var range = Tuple.Create(-maxSignalAmpl, maxSignalAmpl);
 
-            for (var leadIndex = 0; leadIndex<ViewModel.Record.Leads.Count; leadIndex++) 
+            for (var leadIndex = 0; leadIndex < record.Leads.Count; leadIndex++)
             {
-                var lead = ViewModel.Record.Leads[leadIndex];
+                var lead = record.Leads[leadIndex];
 
+                var leadAxisIndex = record.Leads.Count - leadIndex - 1;
                 var leadAxis = new LinearAxis()
                 {
                     Title = lead.Name,
                     Key = lead.Name,
-                    StartPosition = (double)leadIndex / ViewModel.Record.Leads.Count,
-                    EndPosition = (double)(leadIndex + 1) / ViewModel.Record.Leads.Count,
+                    StartPosition = (double)(leadAxisIndex) / record.Leads.Count,
+                    EndPosition = (double)(leadAxisIndex + 1) / record.Leads.Count,
                     Position = AxisPosition.Left,
                     MajorGridlineStyle = LineStyle.Solid,
                     Minimum = range.Item1,
@@ -74,22 +116,12 @@ namespace EEGCleaning
                     UsePlotModelClipArrea = true,
                 };
 
-                var points = lead.Samples.Select((s, index) => new DataPoint(index / ViewModel.Record.SampleRate, s));
+                var points = lead.Samples.Select((s, index) => new DataPoint(index / record.SampleRate, s));
                 leadSeries.Points.AddRange(points);
 
                 plotModel.Axes.Add(leadAxis);
                 plotModel.Series.Add(leadSeries);
             }
-
-            m_plotView.Model = plotModel;
-            m_plotView.ActualController.UnbindAll();
-            m_plotView.ActualController.BindMouseDown(OxyMouseButton.Left, PlotCommands.Track);
-            m_plotView.ActualController.BindMouseDown(OxyMouseButton.Right, PlotCommands.PanAt);
-
-            m_xTrackBar.Value = (int)ViewModel.ScaleX - 1;
-            m_yTrackBar.Value = (int)(ViewModel.ScaleY * 10) - 10;
-
-            UpdateZoom();
         }
 
         void UpdateZoom()
@@ -117,9 +149,9 @@ namespace EEGCleaning
 
         private void OnLoad(object sender, EventArgs e)
         {
-            LoadRecord();
+            LoadRecord(@".\EEGData\Test1\EEG Eye State.arff", RecordFactoryOptions.DefaultEEG);
 
-            UpdatePlot();
+            UpdatePlot(ModelViewMode.Record);
         }
 
         private void OnXScale(object sender, EventArgs e)
@@ -132,6 +164,42 @@ namespace EEGCleaning
         {
             ViewModel.ScaleY = (m_yTrackBar.Value + 10) / 10.0;
             UpdateZoom();
+        }
+
+        private void OnRunICA(object sender, EventArgs e)
+        {
+            var nextMode = ModelViewMode.Record;
+
+            if (ViewModel.ViewMode == ModelViewMode.Record)
+            {
+                RunICA();
+
+                nextMode = ModelViewMode.ICA;
+            }
+
+            UpdatePlot(nextMode);
+        }
+
+        private void OnLoadTestData(object sender, EventArgs e)
+        {
+            m_openFileDialog.InitialDirectory = Directory.GetCurrentDirectory();
+
+            if (m_openFileDialog.ShowDialog(this) == DialogResult.OK)
+            {
+                LoadRecord(m_openFileDialog.FileName, RecordFactoryOptions.DefaultEmpty);
+                UpdatePlot(ModelViewMode.Record);
+            }
+        }
+
+        private void OnLoadEEGData(object sender, EventArgs e)
+        {
+            m_openFileDialog.InitialDirectory = Directory.GetCurrentDirectory();
+
+            if (m_openFileDialog.ShowDialog(this) == DialogResult.OK)
+            {
+                LoadRecord(m_openFileDialog.FileName, RecordFactoryOptions.DefaultEEG);
+                UpdatePlot(ModelViewMode.Record);
+            }
         }
     }
 }

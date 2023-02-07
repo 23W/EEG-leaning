@@ -8,6 +8,8 @@
         Temporal,
         Parietal,
         Occipital,
+
+        IndependenctComponent,
     }
 
     public class Lead
@@ -27,6 +29,12 @@
 
         public double SampleRate { get; set; } = 128;
 
+        public int LeadsCount => Leads.Count();
+
         public int Duration => Leads.FirstOrDefault()?.Samples.Length ?? 0;
+    }
+
+    public class ICARecord : Record
+    {
     }
 }

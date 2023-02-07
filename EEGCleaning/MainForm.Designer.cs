@@ -28,13 +28,21 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.m_plotView = new OxyPlot.WindowsForms.PlotView();
             this.m_xTrackBar = new System.Windows.Forms.TrackBar();
             this.m_yTrackBar = new System.Windows.Forms.TrackBar();
             this.m_xLabel = new System.Windows.Forms.Label();
             this.m_yLabel = new System.Windows.Forms.Label();
+            this.m_icaButton = new System.Windows.Forms.Button();
+            this.m_openFileDialog = new System.Windows.Forms.OpenFileDialog();
+            this.m_loadButton = new EEGCleaning.UI.Controls.MenuButton();
+            this.m_loadContextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.loadEEGToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.loadTestDataToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.m_xTrackBar)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.m_yTrackBar)).BeginInit();
+            this.m_loadContextMenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
             // m_plotView
@@ -101,12 +109,65 @@
             this.m_yLabel.TabIndex = 2;
             this.m_yLabel.Text = "Ampl";
             // 
+            // m_icaButton
+            // 
+            this.m_icaButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.m_icaButton.BackColor = System.Drawing.SystemColors.Control;
+            this.m_icaButton.Location = new System.Drawing.Point(534, 599);
+            this.m_icaButton.Name = "m_icaButton";
+            this.m_icaButton.Size = new System.Drawing.Size(70, 29);
+            this.m_icaButton.TabIndex = 3;
+            this.m_icaButton.Text = "ICA";
+            this.m_icaButton.UseVisualStyleBackColor = false;
+            this.m_icaButton.Click += new System.EventHandler(this.OnRunICA);
+            // 
+            // m_openFileDialog
+            // 
+            this.m_openFileDialog.Filter = "ARFF files|*.arff|CSV files|*.csv|All files|*.*";
+            // 
+            // m_loadButton
+            // 
+            this.m_loadButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.m_loadButton.BackColor = System.Drawing.SystemColors.Control;
+            this.m_loadButton.Location = new System.Drawing.Point(1003, 599);
+            this.m_loadButton.Menu = this.m_loadContextMenuStrip;
+            this.m_loadButton.Name = "m_loadButton";
+            this.m_loadButton.Size = new System.Drawing.Size(94, 29);
+            this.m_loadButton.TabIndex = 5;
+            this.m_loadButton.Text = "Load";
+            this.m_loadButton.UseVisualStyleBackColor = false;
+            // 
+            // m_loadContextMenuStrip
+            // 
+            this.m_loadContextMenuStrip.ImageScalingSize = new System.Drawing.Size(20, 20);
+            this.m_loadContextMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.loadEEGToolStripMenuItem,
+            this.loadTestDataToolStripMenuItem});
+            this.m_loadContextMenuStrip.Name = "m_loadContextMenuStrip";
+            this.m_loadContextMenuStrip.Size = new System.Drawing.Size(178, 52);
+            // 
+            // loadEEGToolStripMenuItem
+            // 
+            this.loadEEGToolStripMenuItem.Name = "loadEEGToolStripMenuItem";
+            this.loadEEGToolStripMenuItem.Size = new System.Drawing.Size(177, 24);
+            this.loadEEGToolStripMenuItem.Text = "Load EEG";
+            this.loadEEGToolStripMenuItem.Click += new System.EventHandler(this.OnLoadEEGData);
+            // 
+            // loadTestDataToolStripMenuItem
+            // 
+            this.loadTestDataToolStripMenuItem.Name = "loadTestDataToolStripMenuItem";
+            this.loadTestDataToolStripMenuItem.Size = new System.Drawing.Size(177, 24);
+            this.loadTestDataToolStripMenuItem.Text = "Load Test Data";
+            this.loadTestDataToolStripMenuItem.Click += new System.EventHandler(this.OnLoadTestData);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
             this.ClientSize = new System.Drawing.Size(1109, 653);
+            this.Controls.Add(this.m_loadButton);
+            this.Controls.Add(this.m_icaButton);
             this.Controls.Add(this.m_yLabel);
             this.Controls.Add(this.m_xLabel);
             this.Controls.Add(this.m_yTrackBar);
@@ -117,6 +178,7 @@
             this.Load += new System.EventHandler(this.OnLoad);
             ((System.ComponentModel.ISupportInitialize)(this.m_xTrackBar)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.m_yTrackBar)).EndInit();
+            this.m_loadContextMenuStrip.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -129,5 +191,11 @@
         private TrackBar m_yTrackBar;
         private Label m_xLabel;
         private Label m_yLabel;
+        private Button m_icaButton;
+        private OpenFileDialog m_openFileDialog;
+        private UI.Controls.MenuButton m_loadButton;
+        private ContextMenuStrip m_loadContextMenuStrip;
+        private ToolStripMenuItem loadEEGToolStripMenuItem;
+        private ToolStripMenuItem loadTestDataToolStripMenuItem;
     }
 }
