@@ -1,4 +1,6 @@
-﻿using ArffTools;
+﻿using Accord.Diagnostics;
+using ArffTools;
+using EEGCore.Data;
 using System.Text;
 
 namespace EEGCore.Serialization
@@ -20,9 +22,13 @@ namespace EEGCore.Serialization
                 var leadIndices = new List<int>();
                 var leadData = new List<List<double>>();
 
+                var rangeIndices = new Dictionary<string, int>();
+                var rangeData = new Dictionary<string, List<bool>>();
+
                 // read all frames to data lists
                 {
                     var attrubuteIndex = 0;
+                    var leadCount = 0;
                     foreach (var attribute in header.Attributes)
                     {
                         if (attribute.Type is ArffNumericAttribute)
@@ -31,11 +37,20 @@ namespace EEGCore.Serialization
 
                             leadIndices.Add(attrubuteIndex);
                             leadData.Add(new List<double>());
-                            attrubuteIndex++;
+
+                            leadCount++;
                         }
+                        else if (attribute.Type is ArffNominalAttribute nominalAttribute &&
+                                 nominalAttribute.Values.Count() == 2)
+                        {
+                            rangeIndices.Add(attribute.Name, attrubuteIndex);
+                            rangeData.Add(attribute.Name, new List<bool>());
+                        }
+
+                        attrubuteIndex++;
                     }
 
-                    if (attrubuteIndex == 0)
+                    if (leadCount == 0)
                     {
                         throw new Exception("Leads data not found");
                     }
@@ -46,6 +61,12 @@ namespace EEGCore.Serialization
                         foreach (var index in leadIndices)
                         {
                             leadData[index].Add((double)frame[index]);
+                        }
+
+                        foreach (var (name, index) in rangeIndices)
+                        {
+                            var value = (int)frame[index];
+                            rangeData[name].Add(value != 0);
                         }
                     }
                 }
@@ -58,6 +79,38 @@ namespace EEGCore.Serialization
                     data.Clear();
 
                     leadIndex++;
+                }
+
+                // create ranges
+                foreach(var (rangeName, rangeMarks) in rangeData)
+                {
+                    var rangeIndex = 0;
+                    var index = 0;
+                    do
+                    {
+                        var gap = rangeMarks.Skip(index)
+                                            .TakeWhile(m => !m).Count();
+                        index += gap;
+
+                        if (index < res.Duration)
+                        {
+                            var duration = rangeMarks.Skip(index)
+                                                     .TakeWhile(m => m).Count();
+                            Debug.Assert(duration > 0);
+
+                            rangeIndex++;
+                            var newRange = new RecordRange()
+                            {
+                                Name = $"{rangeName} #{rangeIndex}",
+                                From = index,
+                                Duration = duration
+                            };
+                            res.Ranges.Add(newRange);
+
+                            index += duration;
+                        }
+                    }
+                    while (index < res.Duration);
                 }
             }
 
