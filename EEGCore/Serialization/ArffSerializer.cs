@@ -84,7 +84,6 @@ namespace EEGCore.Serialization
                 // create ranges
                 foreach(var (rangeName, rangeMarks) in rangeData)
                 {
-                    var rangeIndex = 0;
                     var index = 0;
                     do
                     {
@@ -98,10 +97,9 @@ namespace EEGCore.Serialization
                                                      .TakeWhile(m => m).Count();
                             Debug.Assert(duration > 0);
 
-                            rangeIndex++;
                             var newRange = new RecordRange()
                             {
-                                Name = $"{rangeName} #{rangeIndex}",
+                                Name = rangeName,
                                 From = index,
                                 Duration = duration
                             };

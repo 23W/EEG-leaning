@@ -1,4 +1,5 @@
-﻿using EEGCore.Data;
+﻿using EEGCleaning.Model;
+using EEGCore.Data;
 using System.Windows.Forms;
 
 namespace EEGCleaning.UI.MainView.StateMachine
@@ -44,15 +45,19 @@ namespace EEGCleaning.UI.MainView.StateMachine
 
         protected override string Activate()
         {
+            StateMachine.MainView.ICAButton.Click += OnRunICA;
             StateMachine.EventMouseDown.Event += OnMouseDown;
             StateMachine.EventMouseMove.Event += OnMouseMove;
             StateMachine.EventMouseUp.Event += OnMouseUp;
+
+            StateMachine.MainView.UpdatePlot(ModelViewMode.Record);
 
             return string.Empty;
         }
 
         protected override string Deactivate()
         {
+            StateMachine.MainView.ICAButton.Click -= OnRunICA;
             StateMachine.EventMouseDown.Event -= OnMouseDown;
             StateMachine.EventMouseMove.Event -= OnMouseMove;
             StateMachine.EventMouseUp.Event -= OnMouseUp;
@@ -89,11 +94,21 @@ namespace EEGCleaning.UI.MainView.StateMachine
 
         string OnMouseUp(Events.StateMouseEvent.Arguments args)
         {
+            var nextState = string.Empty;
+
             bool handled = false;
 
             if (RightClickTime.HasValue)
             {
+                if (args.Sender is RecordRange range)
+                {
+                    nextState = EEGRecordRangeContextMenuState.Name;
 
+                    var insertState = StateMachine.FindState(nextState) as EEGRecordRangeContextMenuState;
+                    insertState?.InitState(range);
+
+                    handled = true;
+                }
             }
             else if (LeftClickTime.HasValue)
             {
@@ -117,7 +132,7 @@ namespace EEGCleaning.UI.MainView.StateMachine
             ResetActions();
 
             args.Handled = handled;
-            return string.Empty;
+            return nextState;
         }
 
         string OnMouseMove(Events.StateMouseEvent.Arguments args)
@@ -140,6 +155,12 @@ namespace EEGCleaning.UI.MainView.StateMachine
             }
 
             return nextState;
+        }
+
+        void OnRunICA(object? sender, EventArgs e)
+        {
+            StateMachine.MainView.RunICA();
+            StateMachine.SwitchState(ICARecordState.Name);
         }
 
         #endregion

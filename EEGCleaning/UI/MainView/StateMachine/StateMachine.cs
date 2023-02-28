@@ -21,6 +21,7 @@ namespace EEGCleaning.UI.MainView.StateMachine
 
             AddState(EEGRecordState.Name, new EEGRecordState(this));
             AddState(EEGRecordInsertNewRangeState.Name, new EEGRecordInsertNewRangeState(this));
+            AddState(EEGRecordRangeContextMenuState.Name, new EEGRecordRangeContextMenuState(this));
             AddState(ICARecordState.Name, new ICARecordState(this));
         }
 

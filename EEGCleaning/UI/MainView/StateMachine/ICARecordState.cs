@@ -1,4 +1,5 @@
-﻿using System;
+﻿using EEGCleaning.Model;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,17 +24,28 @@ namespace EEGCleaning.UI.MainView.StateMachine
 
         protected override string Activate()
         {
+            StateMachine.MainView.ICAButton.Click += OnRunICA;
+            StateMachine.MainView.UpdatePlot(ModelViewMode.ICA);
+
             return string.Empty;
+
         }
 
         protected override string Deactivate()
         {
+            StateMachine.MainView.ICAButton.Click -= OnRunICA;
+
             return string.Empty;
         }
 
         #endregion
 
         #region Event Handlers
+
+        void OnRunICA(object? sender, EventArgs e)
+        {
+            StateMachine.SwitchState(EEGRecordState.Name);
+        }
 
         #endregion
     }

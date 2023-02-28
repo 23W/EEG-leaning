@@ -19,6 +19,10 @@ namespace EEGCleaning
 
         internal PlotModel PlotModel => m_plotView.Model;
 
+        internal Point LastPoint { get; set; } = Point.Empty;
+
+        internal Button ICAButton => m_icaButton;
+
         public MainForm()
         {
             InitializeComponent();
@@ -66,31 +70,7 @@ namespace EEGCleaning
             return res;
         }
 
-        void LoadRecord(string path, RecordFactoryOptions options)
-        {
-            var factory = new RecordFactory();
-
-            ViewModel.SourceRecord = factory.FromFile(path, options);
-            ViewModel.RecordOptions = options;
-            ViewModel.CurrentRecord = ViewModel.SourceRecord;
-        }
-
-        void SaveRecord(string path)
-        {
-            var factory = new RecordFactory();
-
-            switch (ViewModel.ViewMode)
-            {
-                case ModelViewMode.Record:
-                    factory.ToFile(path, ViewModel.CurrentRecord);
-                    break;
-                case ModelViewMode.ICA:
-                    factory.ToFile(path, ViewModel.IndependentComponents);
-                    break;
-            }
-        }
-
-        void RunICA()
+        internal void RunICA(RecordRange? range = default)
         {
             var ica = new FastICA()
             {
@@ -99,10 +79,10 @@ namespace EEGCleaning
                 Tolerance = 1E-06,
             };
 
-            ViewModel.IndependentComponents = ica.Solve(ViewModel.CurrentRecord);
+            ViewModel.IndependentComponents = ica.Solve(ViewModel.CurrentRecord, range);
         }
 
-        void UpdatePlot(ModelViewMode viewMode)
+        internal void UpdatePlot(ModelViewMode viewMode)
         {
             ViewModel.ViewMode = viewMode;
             ViewModel.ScaleX = 1;
@@ -135,22 +115,35 @@ namespace EEGCleaning
             m_icaButton.BackColor = (ViewModel.ViewMode == ModelViewMode.ICA) ? SystemColors.ControlDark : SystemColors.Control;
 
             UpdateZoom();
+        }
+
+        void LoadRecord(string path, RecordFactoryOptions options)
+        {
+            var factory = new RecordFactory();
+
+            ViewModel.SourceRecord = factory.FromFile(path, options);
+            ViewModel.RecordOptions = options;
+            ViewModel.CurrentRecord = ViewModel.SourceRecord;
+        }
+
+        void SaveRecord(string path)
+        {
+            var factory = new RecordFactory();
 
             switch (ViewModel.ViewMode)
             {
                 case ModelViewMode.Record:
-                    StateMachine.SwitchState(EEGRecordState.Name);
+                    factory.ToFile(path, ViewModel.CurrentRecord);
                     break;
-
                 case ModelViewMode.ICA:
-                    StateMachine.SwitchState(ICARecordState.Name);
+                    factory.ToFile(path, ViewModel.IndependentComponents);
                     break;
             }
         }
 
         void PopulatedPlotModel(PlotModel plotModel, Record record)
         {
-            plotModel.Axes.ToList().ForEach(a=> UnsubsribePlotEvents(a));
+            plotModel.Axes.ToList().ForEach(a => UnsubsribePlotEvents(a));
             plotModel.Series.ToList().ForEach(a => UnsubsribePlotEvents(a));
             plotModel.Annotations.ToList().ForEach(a => UnsubsribePlotEvents(a));
 
@@ -290,7 +283,7 @@ namespace EEGCleaning
 
         void UnsubsribePlotEvents(PlotModel plotModel)
         {
-            if (plotModel == default) 
+            if (plotModel == default)
             {
                 return;
             }
@@ -345,6 +338,8 @@ namespace EEGCleaning
         {
             void wasHandled(string _, bool handled) { e.Handled = handled; }
 
+            LastPoint = new Point((int)e.Position.X, (int)e.Position.Y);
+
             var mouseEvent = StateMachine.EventMouseDown;
             mouseEvent.AfterEvent += wasHandled;
             mouseEvent.Init(this, sender, e);
@@ -356,6 +351,8 @@ namespace EEGCleaning
         {
             void wasHandled(string _, bool handled) { e.Handled = handled; }
 
+            LastPoint = new Point((int)e.Position.X, (int)e.Position.Y);
+
             var mouseEvent = StateMachine.EventMouseUp;
             mouseEvent.AfterEvent += wasHandled;
             mouseEvent.Init(this, sender, e);
@@ -366,6 +363,8 @@ namespace EEGCleaning
         void OnPlotMouseMove(object? sender, OxyMouseEventArgs e)
         {
             void wasHandled(string _, bool handled) { e.Handled = handled; }
+
+            LastPoint = new Point((int)e.Position.X, (int)e.Position.Y);
 
             var mouseEvent = StateMachine.EventMouseMove;
             mouseEvent.AfterEvent += wasHandled;
@@ -383,6 +382,7 @@ namespace EEGCleaning
             LoadRecord(@".\EEGData\Test1\EEG Eye State.arff", RecordFactoryOptions.DefaultEEG);
 
             UpdatePlot(ModelViewMode.Record);
+            StateMachine.SwitchState(EEGRecordState.Name);
         }
 
         private void OnXScale(object sender, EventArgs e)
@@ -397,20 +397,6 @@ namespace EEGCleaning
             UpdateZoom();
         }
 
-        private void OnRunICA(object sender, EventArgs e)
-        {
-            var nextMode = ModelViewMode.Record;
-
-            if (ViewModel.ViewMode == ModelViewMode.Record)
-            {
-                RunICA();
-
-                nextMode = ModelViewMode.ICA;
-            }
-
-            UpdatePlot(nextMode);
-        }
-
         private void OnLoadTestData(object sender, EventArgs e)
         {
             m_openFileDialog.InitialDirectory = Directory.GetCurrentDirectory();
@@ -418,7 +404,9 @@ namespace EEGCleaning
             if (m_openFileDialog.ShowDialog(this) == DialogResult.OK)
             {
                 LoadRecord(m_openFileDialog.FileName, RecordFactoryOptions.DefaultEmpty);
+
                 UpdatePlot(ModelViewMode.Record);
+                StateMachine.SwitchState(EEGRecordState.Name);
             }
         }
 
@@ -429,7 +417,9 @@ namespace EEGCleaning
             if (m_openFileDialog.ShowDialog(this) == DialogResult.OK)
             {
                 LoadRecord(m_openFileDialog.FileName, RecordFactoryOptions.DefaultEEG);
+
                 UpdatePlot(ModelViewMode.Record);
+                StateMachine.SwitchState(EEGRecordState.Name);
             }
         }
 
