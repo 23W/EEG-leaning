@@ -1,4 +1,5 @@
-﻿using MathNet.Numerics.LinearAlgebra.Double;
+﻿using MathNet.Numerics.LinearAlgebra;
+using MathNet.Numerics.LinearAlgebra.Double;
 using MathNet.Numerics.Statistics;
 
 namespace EEGCore.Processing
@@ -35,6 +36,14 @@ namespace EEGCore.Processing
             var vectorDst = new DenseVector(samples);
 
             vectorSrc.Add(value, vectorDst);
+        }
+
+        public static double[] GetMatrixColumn(double[][] matrix, int column)
+        {
+            var m = Matrix<double>.Build.DenseOfRowArrays(matrix);
+            var result = m.Column(column).ToArray();
+
+            return result;
         }
     }
 }

@@ -42,19 +42,25 @@
             loadTestDataToolStripMenuItem = new ToolStripMenuItem();
             m_saveFileDialog = new SaveFileDialog();
             m_saveButton = new Button();
+            m_splitContainer = new SplitContainer();
+            m_plotWeightsView = new OxyPlot.WindowsForms.PlotView();
             ((System.ComponentModel.ISupportInitialize)m_xTrackBar).BeginInit();
             ((System.ComponentModel.ISupportInitialize)m_yTrackBar).BeginInit();
             m_loadContextMenuStrip.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)m_splitContainer).BeginInit();
+            m_splitContainer.Panel1.SuspendLayout();
+            m_splitContainer.Panel2.SuspendLayout();
+            m_splitContainer.SuspendLayout();
             SuspendLayout();
             // 
             // m_plotView
             // 
-            m_plotView.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            m_plotView.BackColor = Color.White;
-            m_plotView.Location = new Point(8, 9);
+            m_plotView.BackColor = SystemColors.Window;
+            m_plotView.Dock = DockStyle.Fill;
+            m_plotView.Location = new Point(0, 0);
             m_plotView.Name = "m_plotView";
             m_plotView.PanCursor = Cursors.Hand;
-            m_plotView.Size = new Size(1038, 580);
+            m_plotView.Size = new Size(799, 580);
             m_plotView.TabIndex = 0;
             m_plotView.ZoomHorizontalCursor = Cursors.SizeWE;
             m_plotView.ZoomRectangleCursor = Cursors.SizeNWSE;
@@ -174,12 +180,45 @@
             m_saveButton.UseVisualStyleBackColor = false;
             m_saveButton.Click += OnSaveData;
             // 
+            // m_splitContainer
+            // 
+            m_splitContainer.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            m_splitContainer.Location = new Point(8, 9);
+            m_splitContainer.Name = "m_splitContainer";
+            // 
+            // m_splitContainer.Panel1
+            // 
+            m_splitContainer.Panel1.Controls.Add(m_plotView);
+            m_splitContainer.Panel1MinSize = 600;
+            // 
+            // m_splitContainer.Panel2
+            // 
+            m_splitContainer.Panel2.Controls.Add(m_plotWeightsView);
+            m_splitContainer.Panel2MinSize = 100;
+            m_splitContainer.Size = new Size(1038, 580);
+            m_splitContainer.SplitterDistance = 799;
+            m_splitContainer.TabIndex = 7;
+            // 
+            // m_plotWeightsView
+            // 
+            m_plotWeightsView.BackColor = SystemColors.Window;
+            m_plotWeightsView.Dock = DockStyle.Fill;
+            m_plotWeightsView.Location = new Point(0, 0);
+            m_plotWeightsView.Name = "m_plotWeightsView";
+            m_plotWeightsView.PanCursor = Cursors.Hand;
+            m_plotWeightsView.Size = new Size(235, 580);
+            m_plotWeightsView.TabIndex = 1;
+            m_plotWeightsView.ZoomHorizontalCursor = Cursors.SizeWE;
+            m_plotWeightsView.ZoomRectangleCursor = Cursors.SizeNWSE;
+            m_plotWeightsView.ZoomVerticalCursor = Cursors.SizeNS;
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            BackColor = Color.White;
+            BackColor = SystemColors.ButtonFace;
             ClientSize = new Size(1109, 653);
+            Controls.Add(m_splitContainer);
             Controls.Add(m_saveButton);
             Controls.Add(m_loadButton);
             Controls.Add(m_icaButton);
@@ -187,13 +226,16 @@
             Controls.Add(m_xLabel);
             Controls.Add(m_yTrackBar);
             Controls.Add(m_xTrackBar);
-            Controls.Add(m_plotView);
             Name = "MainForm";
             Text = "EEG Cleaner";
             Load += OnLoad;
             ((System.ComponentModel.ISupportInitialize)m_xTrackBar).EndInit();
             ((System.ComponentModel.ISupportInitialize)m_yTrackBar).EndInit();
             m_loadContextMenuStrip.ResumeLayout(false);
+            m_splitContainer.Panel1.ResumeLayout(false);
+            m_splitContainer.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)m_splitContainer).EndInit();
+            m_splitContainer.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
         }
@@ -213,5 +255,7 @@
         private ToolStripMenuItem loadTestDataToolStripMenuItem;
         private SaveFileDialog m_saveFileDialog;
         private Button m_saveButton;
+        private SplitContainer m_splitContainer;
+        private OxyPlot.WindowsForms.PlotView m_plotWeightsView;
     }
 }

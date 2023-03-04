@@ -5,11 +5,13 @@ namespace EEGCleaning.Utilities
 {
     internal static class ViewUtilities
     {
-        internal static OxyColor GetLeadColor(Lead lead)
+        internal static OxyColor GetLeadColor(Lead lead) => GetLeadColor(lead.LeadType);
+
+        internal static OxyColor GetLeadColor(LeadType lead)
         {
             var res = OxyColors.DarkGray;
 
-            switch (lead.LeadType)
+            switch (lead)
             {
                 case LeadType.Frontal: res = OxyColors.DarkBlue; break;
                 case LeadType.Central: res = OxyColors.DarkGreen; break;

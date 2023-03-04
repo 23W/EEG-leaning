@@ -74,7 +74,6 @@ namespace EEGCleaning
         {
             var ica = new FastICA()
             {
-                Estimation = FastICA.NonGaussianityEstimation.LogCosh,
                 MaxIterationCount = 10000,
                 Tolerance = 1E-06,
             };
@@ -91,6 +90,7 @@ namespace EEGCleaning
             UnsubsribePlotEvents(m_plotView.Model);
 
             var plotModel = /*m_plotView.Model ?? */new PlotModel();
+            var plotWeightsModel = new PlotModel();
             switch (ViewModel.ViewMode)
             {
                 case ModelViewMode.Record:
@@ -99,6 +99,7 @@ namespace EEGCleaning
 
                 case ModelViewMode.ICA:
                     PopulatedPlotModel(plotModel, ViewModel.IndependentComponents);
+                    PopulatedPlotWeightsModel(plotWeightsModel, ViewModel.IndependentComponents);
                     break;
             }
 
@@ -108,6 +109,13 @@ namespace EEGCleaning
             m_plotView.ActualController.UnbindAll();
             m_plotView.ActualController.BindMouseDown(OxyMouseButton.Left, PlotCommands.Track);
             m_plotView.ActualController.BindMouseDown(OxyMouseButton.Right, PlotCommands.PanAt);
+
+            m_plotWeightsView.Model = plotWeightsModel;
+            m_plotWeightsView.ActualController.UnbindAll();
+            m_plotWeightsView.ActualController.BindMouseDown(OxyMouseButton.Left, PlotCommands.Track);
+            m_plotWeightsView.ActualController.BindMouseDown(OxyMouseButton.Right, PlotCommands.PanAt);
+
+            m_splitContainer.Panel2Collapsed = (ViewModel.ViewMode != ModelViewMode.ICA);
 
             m_xTrackBar.Value = (int)ViewModel.ScaleX - 1;
             m_yTrackBar.Value = (int)(ViewModel.ScaleY * 10) - 10;
@@ -250,6 +258,57 @@ namespace EEGCleaning
                     plotModel.Annotations.Add(rangeAnnotation);
                     plotModel.Annotations.Add(rangePointAnnotation);
                 }
+            }
+        }
+
+        void PopulatedPlotWeightsModel(PlotModel plotModel, ICARecord record)
+        {
+            plotModel.Axes.Clear();
+            plotModel.Series.Clear();
+            plotModel.Annotations.Clear();
+
+            var xAxis = new CategoryAxis()
+            {
+                AxislineStyle = LineStyle.Solid,
+                GapWidth = 0.1,
+                Position = AxisPosition.Bottom,
+                Key = nameof(record.XNames)
+            };
+            xAxis.Labels.AddRange(record.XNames);
+            plotModel.Axes.Add(xAxis);
+
+            for (var componentIndex = 0; componentIndex < record.Leads.Count; componentIndex++)
+            {
+                var component = record.Leads[componentIndex];
+
+                var componentAxisIndex = record.Leads.Count - componentIndex - 1;
+                var componentAxis = new LinearAxis()
+                {
+                    Title = component.Name,
+                    Key = component.Name,
+                    StartPosition = (double)(componentAxisIndex) / record.Leads.Count,
+                    EndPosition = (double)(componentAxisIndex + 1) / record.Leads.Count,
+                    Position = AxisPosition.Left,
+                    MajorGridlineStyle = LineStyle.Solid,
+                    IsPanEnabled = false,
+                    Tag = component,
+                };
+                plotModel.Axes.Add(componentAxis);
+
+                var componentSeries = new BarSeries()
+                {
+                    XAxisKey = componentAxis.Key,
+                    YAxisKey = nameof(record.XNames),
+                    Tag = component,
+                };
+                componentSeries.Items.AddRange(record.GetMixingVector(componentIndex)
+                                                     .Select((w, i) => new BarItem()
+                                                     {
+                                                         Value = w,
+                                                         Color = ViewUtilities.GetLeadColor(record.XTypes[i])
+                                                     }));
+
+                plotModel.Series.Add(componentSeries);
             }
         }
 

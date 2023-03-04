@@ -15,6 +15,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OxyPlot.WindowsForms", "Lib
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OxyPlot", "Libraries\oxyplot\Source\OxyPlot\OxyPlot.csproj", "{30A4AA9F-789A-4F57-A942-A86F4385C0A9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EEGCoreTests", "EEGCoreTests\EEGCoreTests.csproj", "{1499AEB7-609E-4741-A116-9A97BE19E75A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{524BE983-7EF1-44E6-8CD7-A83B26F4359F} = {524BE983-7EF1-44E6-8CD7-A83B26F4359F}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -37,6 +42,10 @@ Global
 		{30A4AA9F-789A-4F57-A942-A86F4385C0A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{30A4AA9F-789A-4F57-A942-A86F4385C0A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{30A4AA9F-789A-4F57-A942-A86F4385C0A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1499AEB7-609E-4741-A116-9A97BE19E75A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1499AEB7-609E-4741-A116-9A97BE19E75A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1499AEB7-609E-4741-A116-9A97BE19E75A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1499AEB7-609E-4741-A116-9A97BE19E75A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,77 +1,39 @@
 ﻿using Accord.Math;
-using Accord.Statistics.Analysis;
-using Accord.Statistics.Analysis.ContrastFunctions;
 
 namespace EEGCore.Processing.ICA
 {
+    internal abstract class FastICAEngine
+    {
+        internal abstract int MaxIterationCount { get; set; }
+
+        internal abstract double Tolerance { get; set; }
+
+        internal abstract ICAResult Solve(double[][] input, int? numOfComponents = default);
+    }
+
     public class FastICA
     {
-        public enum NonGaussianityEstimation
+        public int MaxIterationCount
         {
-            // According to Hyvärinen, the Logcosh contrast function is a good general-purpose
-            // contrast function.
-            LogCosh,
-
-            // According to Hyvärinen, the kurtosis contrast function is justified on statistical
-            // grounds only for estimating sub-Gaussian independent components when there are
-            // no outliers.
-            Kurtosis,
-
-            // According to Hyvärinen, the Exponential contrast function may be used when the
-            // independent components are highly super-Gaussian or when robustness is very important.
-            Exponential
+            get => Engine.MaxIterationCount;
+            set => Engine.MaxIterationCount = value;
         }
 
-        public NonGaussianityEstimation Estimation { get; set; } = NonGaussianityEstimation.LogCosh;
+        public double Tolerance 
+        { 
+            get => Engine.Tolerance;
+            set => Engine.Tolerance = value;
+        }
 
-        public int MaxIterationCount { get; set; } = 1000;
+        FastICAEngine Engine { get; init; }
 
-        public double Tolerance { get; set; } = 0.0001;
-
-        IndependentComponentAnalysis? Engine { get; set; }
+        public FastICA()
+        {
+            Engine = new FastICA_Accord();
+        }
 
         public ICAResult Solve(double[,] input, int? numOfComponents = default) => Solve(input.ToJagged(), numOfComponents);
 
-        public ICAResult Solve(double[][] input, int? numOfComponents = default)
-        {
-            // Accord.NET implements FastICA algorithm
-            Engine = new IndependentComponentAnalysis()
-            {
-                Algorithm = IndependentComponentAlgorithm.Parallel,
-                Method = AnalysisMethod.Center,
-                NumberOfOutputs = numOfComponents ?? 0,
-                Iterations = MaxIterationCount,
-                Tolerance = Tolerance,
-                Overwrite = false
-            };
-
-            switch (Estimation)
-            {
-                case NonGaussianityEstimation.LogCosh:
-                    Engine.Contrast = new Logcosh();
-                    break;
-
-                case NonGaussianityEstimation.Kurtosis:
-                    Engine.Contrast = new Kurtosis();
-                    break;
-
-                case NonGaussianityEstimation.Exponential:
-                    Engine.Contrast = new Exponential();
-                    break;
-            }
-
-            var inputT = input.Transpose();
-
-            // Compute the analysis
-            var demixer = Engine.Learn(inputT);
-
-            // Separate the input signals
-            var res = new ICAResult()
-            {
-                Sources = demixer.Transform(inputT).Transpose()
-            };
-
-            return res;
-        }
+        public ICAResult Solve(double[][] input, int? numOfComponents = default) => Engine.Solve(input, numOfComponents);
     }
 }

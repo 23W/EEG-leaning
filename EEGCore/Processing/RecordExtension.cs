@@ -1,4 +1,6 @@
 ﻿using EEGCore.Data;
+using System;
+using System.Text.Json;
 
 namespace EEGCore.Processing
 {
@@ -14,5 +16,44 @@ namespace EEGCore.Processing
                                          Math.Abs(range.Item2));
             return maxSignalAmpl;
         }
+
+        public static T Clone<T>(this T record) where T : Record, new()
+        {
+            var json = ToJson(record);
+            var clone = JsonSerializer.Deserialize<T>(json);
+            return clone ?? new T();
+        }
+
+        public static string ToJson<T>(this T record) where T : Record
+        {
+            var json = JsonSerializer.Serialize<T>(record);
+            return json;
+        }
+
+        public static double[][] GetLeadMatrix(this Record record)
+        {
+            var res = record.Leads.Select(lead => lead.Samples).ToArray();
+            return res;
+        }
+
+        public static void SetLeadMatrix(this Record record, double[][] leadsData)
+        {
+            if (record.LeadsCount!= leadsData.Length)
+            {
+                throw new ArgumentException($"{nameof(record.LeadsCount)} and {nameof(leadsData)} must be the same size");
+            }
+
+            foreach(var v in leadsData.Select((data, index) => (data, index)))
+            {
+                record.Leads[v.index].Samples = v.data;
+            }
+        }
+    }
+
+    public static class ICARecordExtension
+    {
+        public static double[] GetMixingVector(this ICARecord record, int componentIndex) => GeneralUtilities.GetMatrixColumn(record.A, componentIndex);
+
+        public static double[] GetDemixingVector(this ICARecord record, int componentIndex) => GeneralUtilities.GetMatrixColumn(record.W, componentIndex);
     }
 }
