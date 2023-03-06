@@ -78,7 +78,7 @@ namespace EEGCleaning.UI.MainView.StateMachine
             var plotModel = view.PlotModel;
             var xAxis = plotModel.Axes.FirstOrDefault(a => a.IsHorizontal());
 
-            var record = view.ViewModel.CurrentRecord;
+            var record = view.ViewModel.ProcessedRecord;
             var from = Math.Min(InitialTime, CurrentTime);
             var to = Math.Max(InitialTime, CurrentTime);
 

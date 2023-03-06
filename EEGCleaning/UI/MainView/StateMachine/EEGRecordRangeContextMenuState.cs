@@ -82,14 +82,14 @@ namespace EEGCleaning.UI.MainView.StateMachine
         {
             var view = StateMachine.MainView;
 
-            view.RunICA(Range);
+            view.RunICADecompose(Range);
             StateMachine.SwitchState(ICARecordState.Name);
         }
 
         void OnMenuEditItemClicked(object? sender, EventArgs e)
         {
             var view = StateMachine.MainView;
-            var record = view.ViewModel.CurrentRecord;
+            var record = view.ViewModel.ProcessedRecord;
 
             using (var dialog = new Dialogs.RecordRangeForm() { Record = record, Range = Range })
             {
@@ -105,7 +105,7 @@ namespace EEGCleaning.UI.MainView.StateMachine
         void OnMenuDeleteItemClicked(object? sender, EventArgs e)
         {
             var view = StateMachine.MainView;
-            var record = view.ViewModel.CurrentRecord;
+            var record = view.ViewModel.ProcessedRecord;
 
             record.Ranges.Remove(Range);
             view.UpdatePlot();

@@ -2,22 +2,6 @@
 
 namespace EEGCore.Data
 {
-    public enum LeadType
-    {
-        Unknown,
-        Frontal,
-        Central,
-        Temporal,
-        Parietal,
-        Occipital,
-    }
-
-    public enum ComponentType
-    {
-        Unknown,
-        EyeArtifact,
-    }
-
     [JsonDerivedType(typeof(ComponentLead), nameof(ComponentLead))]
     [JsonDerivedType(typeof(EEGLead), nameof(EEGLead))]
     public class Lead
@@ -25,21 +9,6 @@ namespace EEGCore.Data
         public string Name { get; set; } = string.Empty;
 
         public double[] Samples { get; set; } = new double[0];
-    }
-
-    public class EEGLead : Lead
-    {
-        public LeadType LeadType { get; set; } = LeadType.Unknown;
-    }
-
-    public class ComponentLead : Lead
-    {
-        public ComponentType ComponentType { get; set; } = ComponentType.Unknown;
-
-        public bool Suppress { get; set; } = false;
-
-        [JsonIgnore]
-        public bool IsArtifact => ComponentType != ComponentType.Unknown;
     }
 
     public class RecordRange
@@ -66,16 +35,5 @@ namespace EEGCore.Data
         public int Duration => Leads.FirstOrDefault()?.Samples.Length ?? 0;
 
         public List<RecordRange> Ranges { get; set; } = new List<RecordRange>();
-    }
-
-    public class ICARecord : Record
-    {
-        // Mixing matrix
-        public double[][] A { get; set; } = new double[0][];
-
-        // Demixing matrix
-        public double[][] W { get; set; } = new double[0][];
-
-        public Record? X { get; set; } = default(Record);
     }
 }

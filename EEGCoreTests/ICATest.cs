@@ -115,7 +115,6 @@ namespace EEGCoreTests
                 {
                     Name = lead.Name,
                     ComponentType = ComponentType.Unknown,
-                    Suppress = false,
                     Samples = lead.Samples,
                 }).Cast<Lead>().ToList(),
             };

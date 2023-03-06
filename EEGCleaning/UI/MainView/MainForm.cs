@@ -23,6 +23,8 @@ namespace EEGCleaning
 
         internal Button ICAButton => m_icaButton;
 
+        internal Button ICAComposeButton => m_icaComposeButton;
+
         public MainForm()
         {
             InitializeComponent();
@@ -54,7 +56,7 @@ namespace EEGCleaning
             else if ((sender is PlotModel) ||
                      (sender is PlotController))
             {
-                res = ViewModel.CurrentRecord;
+                res = ViewModel.ProcessedRecord;
             }
             else if (sender is PlotElement element)
             {
@@ -66,11 +68,11 @@ namespace EEGCleaning
 
         internal bool IsPanDistance(double time1, double time2)
         {
-            bool res = Math.Abs(time2 - time1) * ViewModel.CurrentRecord.SampleRate > 10;
+            bool res = Math.Abs(time2 - time1) * ViewModel.ProcessedRecord.SampleRate > 10;
             return res;
         }
 
-        internal void RunICA(RecordRange? range = default)
+        internal void RunICADecompose(RecordRange? range = default)
         {
             var ica = new FastICA()
             {
@@ -78,7 +80,14 @@ namespace EEGCleaning
                 Tolerance = 1E-06,
             };
 
-            ViewModel.IndependentComponents = ica.Decompose(ViewModel.CurrentRecord, range);
+            ViewModel.IndependentComponents = ica.Decompose(ViewModel.ProcessedRecord, range);
+        }
+
+        internal void RunICACompose()
+        {
+            var ica = new FastICA();
+
+            ViewModel.ProcessedRecord = ica.Compose(ViewModel.IndependentComponents, true);
         }
 
         internal void UpdatePlot(ModelViewMode viewMode)
@@ -94,7 +103,7 @@ namespace EEGCleaning
             switch (ViewModel.ViewMode)
             {
                 case ModelViewMode.Record:
-                    PopulatedPlotModel(plotModel, ViewModel.CurrentRecord);
+                    PopulatedPlotModel(plotModel, ViewModel.ProcessedRecord);
                     break;
 
                 case ModelViewMode.ICA:
@@ -121,6 +130,7 @@ namespace EEGCleaning
             m_yTrackBar.Value = (int)(ViewModel.ScaleY * 10) - 10;
 
             m_icaButton.BackColor = (ViewModel.ViewMode == ModelViewMode.ICA) ? SystemColors.ControlDark : SystemColors.Control;
+            m_icaComposeButton.Visible = ViewModel.ViewMode == ModelViewMode.ICA;
 
             UpdateZoom();
         }
@@ -131,7 +141,7 @@ namespace EEGCleaning
 
             ViewModel.SourceRecord = factory.FromFile(path, options);
             ViewModel.RecordOptions = options;
-            ViewModel.CurrentRecord = ViewModel.SourceRecord;
+            ViewModel.ProcessedRecord = ViewModel.SourceRecord;
         }
 
         void SaveRecord(string path)
@@ -141,7 +151,7 @@ namespace EEGCleaning
             switch (ViewModel.ViewMode)
             {
                 case ModelViewMode.Record:
-                    factory.ToFile(path, ViewModel.CurrentRecord);
+                    factory.ToFile(path, ViewModel.ProcessedRecord);
                     break;
                 case ModelViewMode.ICA:
                     factory.ToFile(path, ViewModel.IndependentComponents);
@@ -209,7 +219,7 @@ namespace EEGCleaning
                 {
                     leadAnnotation = new PointAnnotation()
                     {
-                        Shape = componentLead.IsArtifact ? MarkerType.Square: MarkerType.Diamond,
+                        Shape = componentLead.IsArtifact ? MarkerType.Square : MarkerType.Diamond,
                         Fill = componentLead.IsArtifact ? OxyColors.DarkRed : OxyColors.DarkGreen,
                         Size = 8,
                         X = 0,

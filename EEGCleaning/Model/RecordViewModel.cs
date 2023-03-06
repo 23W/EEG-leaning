@@ -22,7 +22,7 @@ namespace EEGCleaning.Model
 
         internal Record SourceRecord { get; set; } = new Record();
 
-        internal Record CurrentRecord { get; set; } = new Record();
+        internal Record ProcessedRecord { get; set; } = new Record();
 
         internal ICARecord IndependentComponents { get; set; } = new ICARecord();
 
