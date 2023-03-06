@@ -44,6 +44,8 @@
             m_saveButton = new Button();
             m_splitContainer = new SplitContainer();
             m_plotWeightsView = new OxyPlot.WindowsForms.PlotView();
+            m_icaComposeButton = new Button();
+            m_buttonsPanel = new FlowLayoutPanel();
             ((System.ComponentModel.ISupportInitialize)m_xTrackBar).BeginInit();
             ((System.ComponentModel.ISupportInitialize)m_yTrackBar).BeginInit();
             m_loadContextMenuStrip.SuspendLayout();
@@ -51,6 +53,7 @@
             m_splitContainer.Panel1.SuspendLayout();
             m_splitContainer.Panel2.SuspendLayout();
             m_splitContainer.SuspendLayout();
+            m_buttonsPanel.SuspendLayout();
             SuspendLayout();
             // 
             // m_plotView
@@ -119,7 +122,7 @@
             // 
             m_icaButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             m_icaButton.BackColor = SystemColors.Control;
-            m_icaButton.Location = new Point(827, 599);
+            m_icaButton.Location = new Point(3, 4);
             m_icaButton.Name = "m_icaButton";
             m_icaButton.Size = new Size(70, 29);
             m_icaButton.TabIndex = 3;
@@ -134,7 +137,7 @@
             // 
             m_loadButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             m_loadButton.BackColor = SystemColors.Control;
-            m_loadButton.Location = new Point(903, 599);
+            m_loadButton.Location = new Point(181, 4);
             m_loadButton.Menu = m_loadContextMenuStrip;
             m_loadButton.Name = "m_loadButton";
             m_loadButton.Size = new Size(94, 29);
@@ -172,7 +175,7 @@
             // 
             m_saveButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             m_saveButton.BackColor = SystemColors.Control;
-            m_saveButton.Location = new Point(1003, 599);
+            m_saveButton.Location = new Point(281, 4);
             m_saveButton.Name = "m_saveButton";
             m_saveButton.Size = new Size(94, 29);
             m_saveButton.TabIndex = 6;
@@ -212,16 +215,40 @@
             m_plotWeightsView.ZoomRectangleCursor = Cursors.SizeNWSE;
             m_plotWeightsView.ZoomVerticalCursor = Cursors.SizeNS;
             // 
+            // m_icaComposeButton
+            // 
+            m_icaComposeButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            m_icaComposeButton.AutoSize = true;
+            m_icaComposeButton.BackColor = SystemColors.Control;
+            m_icaComposeButton.Location = new Point(79, 3);
+            m_icaComposeButton.Name = "m_icaComposeButton";
+            m_icaComposeButton.Size = new Size(96, 30);
+            m_icaComposeButton.TabIndex = 3;
+            m_icaComposeButton.Text = "Compose";
+            m_icaComposeButton.UseVisualStyleBackColor = false;
+            // 
+            // m_buttonsPanel
+            // 
+            m_buttonsPanel.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            m_buttonsPanel.AutoSize = true;
+            m_buttonsPanel.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            m_buttonsPanel.Controls.Add(m_icaButton);
+            m_buttonsPanel.Controls.Add(m_icaComposeButton);
+            m_buttonsPanel.Controls.Add(m_loadButton);
+            m_buttonsPanel.Controls.Add(m_saveButton);
+            m_buttonsPanel.Location = new Point(719, 607);
+            m_buttonsPanel.Name = "m_buttonsPanel";
+            m_buttonsPanel.Size = new Size(378, 36);
+            m_buttonsPanel.TabIndex = 8;
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.ButtonFace;
             ClientSize = new Size(1109, 653);
+            Controls.Add(m_buttonsPanel);
             Controls.Add(m_splitContainer);
-            Controls.Add(m_saveButton);
-            Controls.Add(m_loadButton);
-            Controls.Add(m_icaButton);
             Controls.Add(m_yLabel);
             Controls.Add(m_xLabel);
             Controls.Add(m_yTrackBar);
@@ -236,6 +263,8 @@
             m_splitContainer.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)m_splitContainer).EndInit();
             m_splitContainer.ResumeLayout(false);
+            m_buttonsPanel.ResumeLayout(false);
+            m_buttonsPanel.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -257,5 +286,7 @@
         private Button m_saveButton;
         private SplitContainer m_splitContainer;
         private OxyPlot.WindowsForms.PlotView m_plotWeightsView;
+        private FlowLayoutPanel m_buttonsPanel;
+        private Button m_icaComposeButton;
     }
 }

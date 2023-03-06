@@ -15,9 +15,9 @@ namespace EEGCleaning.Utilities
             {
                 res = GetLeadColor(eegLead.LeadType);
             }
-            else if (lead is ComponentLead)
+            else if (lead is ComponentLead componentLead)
             {
-                res = OxyColors.DarkOrange;
+                res = (componentLead.Suppress == SuppressType.None) ? OxyColors.DarkOrange : OxyColors.DarkGray;
             }
 
             return res;

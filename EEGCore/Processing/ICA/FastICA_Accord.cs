@@ -68,8 +68,8 @@ namespace EEGCore.Processing.ICA
             var res = new ICAResult()
             {
                 Sources = demixer.Transform(inputT).Transpose(),
-                A = Engine.MixingMatrix.Transpose(),
                 W = Engine.DemixingMatrix.Transpose(),
+                A = Engine.DemixingMatrix.PseudoInverse().Transpose(), // don't use MixingMatrix in IndependentComponentAnalysis, it's corrupted
             };
 
             return res;

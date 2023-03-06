@@ -1,4 +1,7 @@
 ﻿using Accord.Math;
+using EEGCore.Utilities;
+using MathNet.Numerics.LinearAlgebra;
+using MathNet.Numerics.LinearAlgebra.Double;
 
 namespace EEGCore.Processing.ICA
 {
@@ -27,6 +30,8 @@ namespace EEGCore.Processing.ICA
             set => Engine.Tolerance = value;
         }
 
+        public bool NormalizePower { get; set; } = false;
+
         FastICAEngine Engine { get; init; }
 
         public FastICA()
@@ -36,7 +41,31 @@ namespace EEGCore.Processing.ICA
 
         public ICAResult Decompose(double[,] mixture, int? numOfComponents = default) => Decompose(mixture.ToJagged(), numOfComponents);
 
-        public ICAResult Decompose(double[][] mixture, int? numOfComponents = default) => Engine.Decompose(mixture, numOfComponents);
+        public ICAResult Decompose(double[][] mixture, int? numOfComponents = default)
+        {
+            var res = Engine.Decompose(mixture, numOfComponents);
+
+            if (NormalizePower)
+            {
+                var a = Matrix<double>.Build.DenseOfRowArrays(res.A);
+                var norms = a.ColumnNorms(2.0);
+
+                var it = a.EnumerateColumns().Select((column, index) => column / norms[index]);
+                var aNorm = Matrix<double>.Build.DenseOfColumnVectors(it);
+                var wNorm = aNorm.PseudoInverse();
+
+                res.A = aNorm.ToRowArrays();
+                res.W = aNorm.ToRowArrays();
+
+                foreach (var (component, index) in res.Sources.WithIndex())
+                {
+                    var c = new DenseVector(component);
+                    c.MapInplace(v => v * norms[index]);
+                }
+            }
+
+            return res;
+        }
 
         public double[][] Compose(double[][] a, double[][] sources) => Engine.Compose(a, sources);
     }

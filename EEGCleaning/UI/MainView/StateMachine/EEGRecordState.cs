@@ -117,7 +117,7 @@ namespace EEGCleaning.UI.MainView.StateMachine
                     handled = true;
 
                     var view = StateMachine.MainView;
-                    var record = view.ViewModel.CurrentRecord;
+                    var record = view.ViewModel.ProcessedRecord;
 
                     using (var dialog = new Dialogs.RecordRangeForm() { Record = record, Range = range })
                     {
@@ -159,7 +159,7 @@ namespace EEGCleaning.UI.MainView.StateMachine
 
         void OnRunICA(object? sender, EventArgs e)
         {
-            StateMachine.MainView.RunICA();
+            StateMachine.MainView.RunICADecompose();
             StateMachine.SwitchState(ICARecordState.Name);
         }
 

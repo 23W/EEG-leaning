@@ -1,6 +1,8 @@
 ﻿using Accord.Diagnostics;
 using Accord.Statistics.Distributions.Univariate;
 using EEGCore.Data;
+using EEGCore.Processing.Filtering;
+using EEGCore.Utilities;
 
 namespace EEGCore.Processing.ICA
 {
@@ -31,11 +33,12 @@ namespace EEGCore.Processing.ICA
                 A = icaResult.A,
                 W = icaResult.W,
                 X = mixture,
+                XRange = range,
                 Leads = icaResult.Sources.Select((sourceSamples, sourceIndex) => new ComponentLead()
                 {
                     Name = $"IC{sourceIndex + 1}",
                     ComponentType = ComponentType.Unknown,
-                    Suppress = false,
+                    Suppress = SuppressType.None,
                     Samples = sourceSamples
                 }).Cast<Lead>().ToList()
             };
@@ -43,30 +46,68 @@ namespace EEGCore.Processing.ICA
             return res;
         }
 
-        public static Record Compose(this FastICA ica, ICARecord sources)
+        public static Record Compose(this FastICA ica, ICARecord sources, bool suppressComponents = false)
         {
             Debug.Assert(sources.LeadsCount > 1);
 
-            var mixture = ica.Compose(sources.A, sources.GetLeadMatrix());
-            var res = new Record()
+            var sourcesMatrix = sources.GetLeadMatrix();
+            if (suppressComponents)
             {
-                Name = sources.Name,
-                SampleRate = sources.SampleRate,
-                Leads = mixture.Select((leadSamples, leadIndex) => new Lead()
+                var highPass30Filter = FilterFactory.BuildHighPassFilter(sources.SampleRate, 30.0);
+
+                foreach (var (component,index) in sources.Leads.WithIndex())
                 {
-                    Name = $"X{leadIndex + 1}",
-                    Samples = leadSamples,
-                }).ToList()
-            };
+                    switch ((component as ComponentLead)?.Suppress)
+                    {
+                        case SuppressType.None:
+                            break;
+                        case SuppressType.ZeroLead:
+                            Array.Fill(sourcesMatrix[index], 0);
+                            break;
+                        case SuppressType.HiPass30:
+                            sourcesMatrix[index] = highPass30Filter.Process(sourcesMatrix[index]);
+                            break;
+                    }
+                }
+            }
+
+            var res = new Record();
+            var mixture = ica.Compose(sources.A, sourcesMatrix);
 
             if ((sources.X != default) &&
-                (sources.X!.LeadsCount == res.LeadsCount))
+                (sources.XRange != default))
             {
-                for (var leadIndex = 0; leadIndex < res.LeadsCount; leadIndex++)
+                res = sources.X.Clone();
+                var range = sources.XRange;
+
+                foreach(var (mixedLead, index) in mixture.WithIndex())
                 {
-                    var copy = sources.X.Leads[leadIndex].Clone();
-                    copy.Samples = res.Leads[leadIndex].Samples;
-                    res.Leads[leadIndex] = copy;
+                    var lead = res.Leads[index];
+                    Array.Copy(mixedLead, 0, lead.Samples, range.From, Math.Min(mixedLead.Length, res.Duration));
+                }
+            }
+            else
+            {
+                res = new Record()
+                {
+                    Name = sources.Name,
+                    SampleRate = sources.SampleRate,
+                    Leads = mixture.Select((leadSamples, leadIndex) => new Lead()
+                    {
+                        Name = $"X{leadIndex + 1}",
+                        Samples = leadSamples,
+                    }).ToList()
+                };
+
+                if ((sources.X != default) &&
+                    (sources.X!.LeadsCount == res.LeadsCount))
+                {
+                    for (var leadIndex = 0; leadIndex < res.LeadsCount; leadIndex++)
+                    {
+                        var copy = sources.X.Leads[leadIndex].Clone();
+                        copy.Samples = res.Leads[leadIndex].Samples;
+                        res.Leads[leadIndex] = copy;
+                    }
                 }
             }
 

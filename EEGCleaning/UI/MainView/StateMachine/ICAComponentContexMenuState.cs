@@ -9,11 +9,13 @@ namespace EEGCleaning.UI.MainView.StateMachine
         internal ICAComponentContexMenuState(StateMachine stateMachine)
             : base(stateMachine)
         {
-            Menu = new ContextMenuStrip();
             Menu.Items.AddRange(new ToolStripItem[]
             {
                 MenuEyeArtifact,
-                MenuSuppress,
+                MenuSeparator,
+                MenuNotSuppress,
+                MenuZeroLeadSuppress,
+                MenuHiPass30Suppress,
             });
         }
 
@@ -23,9 +25,12 @@ namespace EEGCleaning.UI.MainView.StateMachine
 
         internal static string Name => nameof(ICAComponentContexMenuState);
 
-        ContextMenuStrip Menu { get; init; }
+        ContextMenuStrip Menu { get; init; } = new ContextMenuStrip();
         ToolStripMenuItem MenuEyeArtifact { get; init; } = new ToolStripMenuItem("Eye Artifact");
-        ToolStripMenuItem MenuSuppress { get; init; } = new ToolStripMenuItem("Suppress");
+        ToolStripSeparator MenuSeparator { get; init; } = new ToolStripSeparator();
+        ToolStripMenuItem MenuNotSuppress { get; init; } = new ToolStripMenuItem("None");
+        ToolStripMenuItem MenuZeroLeadSuppress { get; init; } = new ToolStripMenuItem("Zero Lead");
+        ToolStripMenuItem MenuHiPass30Suppress { get; init; } = new ToolStripMenuItem("HiPass 30 Hz");
 
         Point Point { get; set; } = Point.Empty;
 
@@ -49,10 +54,14 @@ namespace EEGCleaning.UI.MainView.StateMachine
         protected override string Activate()
         {
             MenuEyeArtifact.Checked = ComponentLead.ComponentType == ComponentType.EyeArtifact;
-            MenuSuppress.Checked = ComponentLead.Suppress;
+            MenuNotSuppress.Checked = ComponentLead.Suppress == SuppressType.None;
+            MenuZeroLeadSuppress.Checked = ComponentLead.Suppress == SuppressType.ZeroLead;
+            MenuHiPass30Suppress.Checked = ComponentLead.Suppress == SuppressType.HiPass30;
 
             MenuEyeArtifact.Click += OnMenuEyeArtifactItemClicked;
-            MenuSuppress.Click += OnMenuSuppressItemClicked;
+            MenuNotSuppress.Click += OnMenuNoneSuppressItemClicked;
+            MenuZeroLeadSuppress.Click += OnMenuZeroLeadSuppressItemClicked;
+            MenuHiPass30Suppress.Click += OnMenuHiPass30SuppressItemClicked;
 
             Menu.Show(StateMachine.MainView, Point);
             Menu.Closed += OnMenuClosed;
@@ -63,7 +72,9 @@ namespace EEGCleaning.UI.MainView.StateMachine
         protected override string Deactivate()
         {
             MenuEyeArtifact.Click -= OnMenuEyeArtifactItemClicked;
-            MenuSuppress.Click -= OnMenuSuppressItemClicked;
+            MenuNotSuppress.Click -= OnMenuNoneSuppressItemClicked;
+            MenuZeroLeadSuppress.Click -= OnMenuZeroLeadSuppressItemClicked;
+            MenuHiPass30Suppress.Click -= OnMenuHiPass30SuppressItemClicked;
 
             Menu.Closed -= OnMenuClosed;
             Menu.Hide();
@@ -85,9 +96,25 @@ namespace EEGCleaning.UI.MainView.StateMachine
             StateMachine.SwitchState(PrevieousStateName);
         }
 
-        void OnMenuSuppressItemClicked(object? sender, EventArgs e)
+        void OnMenuNoneSuppressItemClicked(object? sender, EventArgs e)
         {
-            ComponentLead.Suppress = !ComponentLead.Suppress;
+            ComponentLead.Suppress = SuppressType.None;
+
+            StateMachine.MainView.UpdatePlot();
+            StateMachine.SwitchState(PrevieousStateName);
+        }
+
+        void OnMenuZeroLeadSuppressItemClicked(object? sender, EventArgs e)
+        {
+            ComponentLead.Suppress = SuppressType.ZeroLead;
+
+            StateMachine.MainView.UpdatePlot();
+            StateMachine.SwitchState(PrevieousStateName);
+        }
+
+        void OnMenuHiPass30SuppressItemClicked(object? sender, EventArgs e)
+        {
+            ComponentLead.Suppress = SuppressType.HiPass30;
 
             StateMachine.MainView.UpdatePlot();
             StateMachine.SwitchState(PrevieousStateName);
