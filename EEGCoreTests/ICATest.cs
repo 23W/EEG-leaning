@@ -2,7 +2,9 @@ using EEGCore.Data;
 using EEGCore.Processing;
 using EEGCore.Processing.ICA;
 using EEGCore.Utilities;
+using MathNet.Numerics;
 using MathNet.Numerics.LinearAlgebra;
+using MathNet.Numerics.LinearAlgebra.Double;
 using MathNet.Numerics.Statistics;
 using System.Text.Json;
 
@@ -148,11 +150,14 @@ namespace EEGCoreTests
 
             for (var leadIndex = 0; leadIndex < mixedRecord.LeadsCount; leadIndex++)
             {
-                var mixedLead = mixedRecord.Leads[leadIndex];
-                var icaMixedLead = icaMixedResult.Leads[leadIndex];
-                var correlation = Correlation.Pearson(mixedLead.Samples, icaMixedLead.Samples);
+                var mixedLead = new DenseVector(mixedRecord.Leads[leadIndex].Samples);
+                var icaMixedLead = new DenseVector(icaMixedResult.Leads[leadIndex].Samples);
+
+                var correlation = Correlation.Pearson(mixedLead, icaMixedLead);
+                var vectorEquality = mixedLead.AlmostEqual(icaMixedLead, 6);
 
                 Assert.IsTrue(correlation > 0.999);
+                Assert.IsTrue(vectorEquality);
             }
         }
 
