@@ -23,6 +23,7 @@ namespace EEGCleaning.UI.MainView.StateMachine
             AddState(EEGRecordInsertNewRangeState.Name, new EEGRecordInsertNewRangeState(this));
             AddState(EEGRecordRangeContextMenuState.Name, new EEGRecordRangeContextMenuState(this));
             AddState(ICARecordState.Name, new ICARecordState(this));
+            AddState(ICAComponentContexMenuState.Name, new ICAComponentContexMenuState(this));
         }
 
         #endregion

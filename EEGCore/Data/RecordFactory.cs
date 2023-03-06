@@ -54,9 +54,20 @@ namespace EEGCore.Data
                 res = deserializer.Deserialize(stream);
             }
 
-            foreach (var lead in res.Leads)
+            for (var leadIndex = 0; leadIndex<res.LeadsCount; leadIndex++)
             {
-                lead.LeadType = DataUtilities.GetLeadType(lead.Name);
+                var eegType = DataUtilities.GetEEGLeadTypeByName(res.Leads[leadIndex].Name);
+                if (eegType != LeadType.Unknown)
+                {
+                    var eegLead = new EEGLead()
+                    {
+                        Name = res.Leads[leadIndex].Name,
+                        Samples = res.Leads[leadIndex].Samples,
+                        LeadType = eegType,
+                    };
+
+                    res.Leads[leadIndex] = eegLead;
+                }
             }
 
             if (options?.ZeroMean ?? false)

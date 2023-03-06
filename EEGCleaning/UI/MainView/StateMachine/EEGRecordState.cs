@@ -104,8 +104,8 @@ namespace EEGCleaning.UI.MainView.StateMachine
                 {
                     nextState = EEGRecordRangeContextMenuState.Name;
 
-                    var insertState = StateMachine.FindState(nextState) as EEGRecordRangeContextMenuState;
-                    insertState?.InitState(range);
+                    var contextMenu = StateMachine.FindState(nextState) as EEGRecordRangeContextMenuState;
+                    contextMenu?.InitState(range);
 
                     handled = true;
                 }

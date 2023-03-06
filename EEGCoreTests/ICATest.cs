@@ -1,10 +1,9 @@
 using EEGCore.Data;
 using EEGCore.Processing;
 using EEGCore.Processing.ICA;
+using EEGCore.Utilities;
 using MathNet.Numerics.LinearAlgebra;
-using MathNet.Numerics.LinearAlgebra.Double;
 using MathNet.Numerics.Statistics;
-using System.Diagnostics;
 using System.Text.Json;
 
 namespace EEGCoreTests
@@ -18,7 +17,7 @@ namespace EEGCoreTests
         public TestContext? TestContext { get; set; }
 
         [TestMethod]
-        public void Decomposition_Test1()
+        public void Test1_Decomposition()
         {
             // read data
             var (sourceRecord, a) = ReadSource("Test1_X.arff", "Test1_A.json");
@@ -49,11 +48,11 @@ namespace EEGCoreTests
                 };
 
                 // decompose
-                var icaComponents = ica.Solve(mixedRecord);
+                var icaComponents = ica.Decompose(mixedRecord);
                 aEst = Matrix<double>.Build.DenseOfRowArrays(icaComponents.A);
 
                 // find sources that correlate with components
-                foreach (var component in icaComponents.Leads.Select((component, index) => (component.Samples, index)))
+                foreach (var (component, componentIndex) in icaComponents.Leads.WithIndex())
                 {
                     var correlations = sourceRecord.Leads
                                                    .Select(lead => Correlation.Pearson(lead.Samples, component.Samples))
@@ -63,13 +62,13 @@ namespace EEGCoreTests
                     isValidDecomposition = foundIndex >= 0;
                     if (isValidDecomposition)
                     {
-                        permitations[component.index] = foundIndex;
+                        permitations[componentIndex] = foundIndex;
                     }
                     else
                     {
                         if (attempt == MaxDecompositionAttampts)
                         {
-                            Assert.IsTrue(false, $"Component {component.index} was not found in Sources in {MaxDecompositionAttampts} attempts");
+                            Assert.IsTrue(false, $"Component {componentIndex} was not found in Sources in {MaxDecompositionAttampts} attempts");
                         }
                         else
                         {
@@ -102,15 +101,75 @@ namespace EEGCoreTests
             TestContext?.Write($"L2 Nrom A est: {aEstNorm}");
         }
 
+        [TestMethod]
+        public void Test2_Composition()
+        {
+            var (dataRecord, a) = ReadSource("Test1_X.arff", "Test1_A.json");
+            var sourceRecord = new ICARecord()
+            {
+                Name = dataRecord.Name,
+                SampleRate = dataRecord.SampleRate,
+                A = a.ToRowArrays(),
+                W = a.PseudoInverse().ToRowArrays(),
+                Leads = dataRecord.Leads.Select(lead => new ComponentLead()
+                {
+                    Name = lead.Name,
+                    ComponentType = ComponentType.Unknown,
+                    Suppress = false,
+                    Samples = lead.Samples,
+                }).Cast<Lead>().ToList(),
+            };
+
+            var mixedRecord = new Record()
+            {
+                Name = dataRecord.Name,
+                SampleRate = dataRecord.SampleRate,
+                Leads = dataRecord.Leads.Select(lead => new Lead()
+                {
+                    Name = lead.Name,
+                    Samples = lead.Samples,
+                }).ToList(),
+            };
+
+            // manual build mixture
+            {
+                var s = Matrix<double>.Build.DenseOfRowArrays(dataRecord.GetLeadMatrix());
+                var x = a * s;
+
+                mixedRecord.SetLeadMatrix(x.ToRowArrays());
+            }
+
+            // do ICA composition
+            var ica = new FastICA();
+            var icaMixedResult = ica.Compose(sourceRecord);
+
+            // compare result
+            Assert.IsTrue(mixedRecord.LeadsCount == icaMixedResult.LeadsCount);
+            Assert.IsTrue(mixedRecord.SampleRate == icaMixedResult.SampleRate);
+
+            for (var leadIndex = 0; leadIndex < mixedRecord.LeadsCount; leadIndex++)
+            {
+                var mixedLead = mixedRecord.Leads[leadIndex];
+                var icaMixedLead = icaMixedResult.Leads[leadIndex];
+                var correlation = Correlation.Pearson(mixedLead.Samples, icaMixedLead.Samples);
+
+                Assert.IsTrue(correlation > 0.999);
+            }
+        }
+
+        #region Helper Methods
+
         (Record, Matrix<double>) ReadSource(string sourceFile, string mixingMatrixFile)
         {
-            var factorey = new RecordFactory();
-            var source = factorey.FromFile(sourceFile, new RecordFactoryOptions() { SortLeads = false, ZeroMean = false });
+            var factory = new RecordFactory();
+            var source = factory.FromFile(sourceFile, new RecordFactoryOptions() { SortLeads = false, ZeroMean = false });
 
             var matrix = JsonSerializer.Deserialize<double[][]>(File.ReadAllText(mixingMatrixFile));
             var mixingMatrix = Matrix<double>.Build.DenseOfRowArrays(matrix);
 
             return (source, mixingMatrix);
         }
+
+        #endregion
     }
 }

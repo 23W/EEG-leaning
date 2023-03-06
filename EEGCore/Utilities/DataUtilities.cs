@@ -4,7 +4,7 @@ namespace EEGCore.Utilities
 {
     internal static class DataUtilities
     {
-        internal static LeadType GetLeadType(string leadName)
+        internal static LeadType GetEEGLeadTypeByName(string leadName)
         {
             var leadType = LeadType.Unknown;
 
@@ -35,7 +35,24 @@ namespace EEGCore.Utilities
 
         internal static int ComparetTo(Lead l1, Lead l2)
         {
-            var res = (l1.LeadType - l2.LeadType);
+            var res = 0;
+
+            var eegLead1 = l1 as EEGLead;
+            var eegLead2 = l2 as EEGLead;
+
+            if (eegLead1 != default && eegLead2 != default)
+            {
+                res = (eegLead1.LeadType - eegLead2.LeadType);
+            }
+            else if (eegLead1 != default && eegLead2 == default)
+            {
+                res = -1;
+            }
+            else if (eegLead1 == default && eegLead2 != default)
+            {
+                res = 1;
+            }
+
             if (res == 0)
             {
                 res = l1.Name.CompareTo(l2.Name);

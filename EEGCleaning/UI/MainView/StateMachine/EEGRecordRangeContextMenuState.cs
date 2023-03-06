@@ -1,6 +1,4 @@
-﻿using EEGCleaning.Model;
-using EEGCore.Data;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+﻿using EEGCore.Data;
 
 namespace EEGCleaning.UI.MainView.StateMachine
 {
@@ -12,7 +10,8 @@ namespace EEGCleaning.UI.MainView.StateMachine
             : base(stateMachine)
         {
             Menu = new ContextMenuStrip();
-            Menu.Items.AddRange(new ToolStripItem[] {
+            Menu.Items.AddRange(new ToolStripItem[]
+            {
                 MenuICAItem,
                 MenuEditItem,
                 MenuDeleteItem,
@@ -66,7 +65,6 @@ namespace EEGCleaning.UI.MainView.StateMachine
             MenuICAItem.Click -= OnMenuICAItemClicked;
             MenuEditItem.Click -= OnMenuEditItemClicked;
             MenuDeleteItem.Click -= OnMenuDeleteItemClicked;
-            MenuICAItem.Click -= OnMenuICAItemClicked;
 
             Menu.Closed -= OnMenuClosed;
             Menu.Hide();

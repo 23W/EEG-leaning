@@ -78,7 +78,7 @@ namespace EEGCleaning
                 Tolerance = 1E-06,
             };
 
-            ViewModel.IndependentComponents = ica.Solve(ViewModel.CurrentRecord, range);
+            ViewModel.IndependentComponents = ica.Decompose(ViewModel.CurrentRecord, range);
         }
 
         internal void UpdatePlot(ModelViewMode viewMode)
@@ -204,11 +204,36 @@ namespace EEGCleaning
                     Tag = lead,
                 };
 
+                var leadAnnotation = default(Annotation);
+                if (lead is ComponentLead componentLead)
+                {
+                    leadAnnotation = new PointAnnotation()
+                    {
+                        Shape = componentLead.IsArtifact ? MarkerType.Square: MarkerType.Diamond,
+                        Fill = componentLead.IsArtifact ? OxyColors.DarkRed : OxyColors.DarkGreen,
+                        Size = 8,
+                        X = 0,
+                        Y = 0,
+                        XAxisKey = xAxis.Key,
+                        YAxisKey = leadAxis.Key,
+                        ClipByXAxis = false,
+                        ClipByYAxis = false,
+                        Tag = lead,
+                    };
+
+                    SubsribePlotEvents(leadAnnotation);
+                }
+
                 var points = lead.Samples.Select((s, index) => new DataPoint(index / record.SampleRate, s));
                 leadSeries.Points.AddRange(points);
 
                 plotModel.Axes.Add(leadAxis);
                 plotModel.Series.Add(leadSeries);
+
+                if (leadAnnotation != default)
+                {
+                    plotModel.Annotations.Add(leadAnnotation);
+                }
             }
 
             if (record.Ranges.Any())
@@ -272,9 +297,18 @@ namespace EEGCleaning
                 AxislineStyle = LineStyle.Solid,
                 GapWidth = 0.1,
                 Position = AxisPosition.Bottom,
-                Key = nameof(record.XNames)
+                Key = nameof(record.X)
             };
-            xAxis.Labels.AddRange(record.XNames);
+
+            if (record.X != default)
+            {
+                xAxis.Labels.AddRange(record.X.Leads.Select(l => l.Name));
+            }
+            else
+            {
+                xAxis.Labels.AddRange(Enumerable.Range(1, record.LeadsCount).Select(n => $"X{n}"));
+            }
+
             plotModel.Axes.Add(xAxis);
 
             for (var componentIndex = 0; componentIndex < record.Leads.Count; componentIndex++)
@@ -298,14 +332,15 @@ namespace EEGCleaning
                 var componentSeries = new BarSeries()
                 {
                     XAxisKey = componentAxis.Key,
-                    YAxisKey = nameof(record.XNames),
+                    YAxisKey = nameof(record.X),
                     Tag = component,
                 };
                 componentSeries.Items.AddRange(record.GetMixingVector(componentIndex)
                                                      .Select((w, i) => new BarItem()
                                                      {
                                                          Value = w,
-                                                         Color = ViewUtilities.GetLeadColor(record.XTypes[i])
+                                                         Color = record.X == default ? ViewUtilities.DefaultLeadColor :
+                                                                                       ViewUtilities.GetLeadColor(record.X.Leads[i])
                                                      }));
 
                 plotModel.Series.Add(componentSeries);

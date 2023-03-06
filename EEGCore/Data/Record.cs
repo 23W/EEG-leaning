@@ -10,17 +10,36 @@ namespace EEGCore.Data
         Temporal,
         Parietal,
         Occipital,
-
-        IndependenctComponent,
     }
 
+    public enum ComponentType
+    {
+        Unknown,
+        EyeArtifact,
+    }
+
+    [JsonDerivedType(typeof(ComponentLead), nameof(ComponentLead))]
+    [JsonDerivedType(typeof(EEGLead), nameof(EEGLead))]
     public class Lead
     {
         public string Name { get; set; } = string.Empty;
 
-        public LeadType LeadType { get; set; } = LeadType.Unknown;
-
         public double[] Samples { get; set; } = new double[0];
+    }
+
+    public class EEGLead : Lead
+    {
+        public LeadType LeadType { get; set; } = LeadType.Unknown;
+    }
+
+    public class ComponentLead : Lead
+    {
+        public ComponentType ComponentType { get; set; } = ComponentType.Unknown;
+
+        public bool Suppress { get; set; } = false;
+
+        [JsonIgnore]
+        public bool IsArtifact => ComponentType != ComponentType.Unknown;
     }
 
     public class RecordRange
@@ -57,8 +76,6 @@ namespace EEGCore.Data
         // Demixing matrix
         public double[][] W { get; set; } = new double[0][];
 
-        public LeadType[] XTypes { get; set; } = Array.Empty<LeadType>();
-
-        public string[] XNames { get; set; } = Array.Empty<string>();
+        public Record? X { get; set; } = default(Record);
     }
 }

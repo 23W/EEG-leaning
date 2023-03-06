@@ -8,7 +8,9 @@ namespace EEGCore.Processing.ICA
 
         internal abstract double Tolerance { get; set; }
 
-        internal abstract ICAResult Solve(double[][] input, int? numOfComponents = default);
+        internal abstract ICAResult Decompose(double[][] mixture, int? numOfComponents = default);
+
+        internal abstract double[][] Compose(double[][] a, double[][] sources);
     }
 
     public class FastICA
@@ -32,8 +34,10 @@ namespace EEGCore.Processing.ICA
             Engine = new FastICA_Accord();
         }
 
-        public ICAResult Solve(double[,] input, int? numOfComponents = default) => Solve(input.ToJagged(), numOfComponents);
+        public ICAResult Decompose(double[,] mixture, int? numOfComponents = default) => Decompose(mixture.ToJagged(), numOfComponents);
 
-        public ICAResult Solve(double[][] input, int? numOfComponents = default) => Engine.Solve(input, numOfComponents);
+        public ICAResult Decompose(double[][] mixture, int? numOfComponents = default) => Engine.Decompose(mixture, numOfComponents);
+
+        public double[][] Compose(double[][] a, double[][] sources) => Engine.Compose(a, sources);
     }
 }

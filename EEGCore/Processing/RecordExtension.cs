@@ -1,4 +1,5 @@
 ﻿using EEGCore.Data;
+using EEGCore.Utilities;
 using System;
 using System.Text.Json;
 
@@ -43,9 +44,9 @@ namespace EEGCore.Processing
                 throw new ArgumentException($"{nameof(record.LeadsCount)} and {nameof(leadsData)} must be the same size");
             }
 
-            foreach(var v in leadsData.Select((data, index) => (data, index)))
+            foreach(var (data, index) in leadsData.WithIndex())
             {
-                record.Leads[v.index].Samples = v.data;
+                record.Leads[index].Samples = data;
             }
         }
     }

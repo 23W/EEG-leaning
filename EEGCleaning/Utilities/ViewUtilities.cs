@@ -5,11 +5,27 @@ namespace EEGCleaning.Utilities
 {
     internal static class ViewUtilities
     {
-        internal static OxyColor GetLeadColor(Lead lead) => GetLeadColor(lead.LeadType);
+        internal static OxyColor DefaultLeadColor => OxyColors.DarkGray;
+
+        internal static OxyColor GetLeadColor(Lead lead)
+        {
+            var res = DefaultLeadColor;
+
+            if (lead is EEGLead eegLead)
+            {
+                res = GetLeadColor(eegLead.LeadType);
+            }
+            else if (lead is ComponentLead)
+            {
+                res = OxyColors.DarkOrange;
+            }
+
+            return res;
+        }
 
         internal static OxyColor GetLeadColor(LeadType lead)
         {
-            var res = OxyColors.DarkGray;
+            var res = DefaultLeadColor;
 
             switch (lead)
             {
@@ -18,7 +34,6 @@ namespace EEGCleaning.Utilities
                 case LeadType.Parietal: res = OxyColors.DarkOliveGreen; break;
                 case LeadType.Temporal: res = OxyColors.DarkOrange; break;
                 case LeadType.Occipital: res = OxyColors.DarkRed; break;
-                case LeadType.IndependenctComponent: res = OxyColors.DarkOrange; break;
             }
 
             return res;

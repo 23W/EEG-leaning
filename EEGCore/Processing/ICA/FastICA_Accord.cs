@@ -1,6 +1,7 @@
 ﻿using Accord.Math;
 using Accord.Statistics.Analysis;
 using Accord.Statistics.Analysis.ContrastFunctions;
+using MathNet.Numerics.LinearAlgebra;
 
 namespace EEGCore.Processing.ICA
 {
@@ -30,7 +31,7 @@ namespace EEGCore.Processing.ICA
 
         IndependentComponentAnalysis? Engine { get; set; }
 
-        internal override ICAResult Solve(double[][] input, int? numOfComponents = default)
+        internal override ICAResult Decompose(double[][] mixture, int? numOfComponents = default)
         {
             // Accord.NET implements FastICA algorithm
             Engine = new IndependentComponentAnalysis()
@@ -58,7 +59,7 @@ namespace EEGCore.Processing.ICA
                     break;
             }
 
-            var inputT = input.Transpose();
+            var inputT = mixture.Transpose();
 
             // Compute the analysis
             var demixer = Engine.Learn(inputT);
@@ -72,6 +73,15 @@ namespace EEGCore.Processing.ICA
             };
 
             return res;
+        }
+
+        internal override double[][] Compose(double[][] a, double[][] sources)
+        {
+            var sourcesMatrix = Matrix<double>.Build.DenseOfRowArrays(sources);
+            var mixingMatrix = Matrix<double>.Build.DenseOfRowArrays(a);
+
+            var mixture = (mixingMatrix * sourcesMatrix).ToRowArrays();
+            return mixture;
         }
     }
 }
