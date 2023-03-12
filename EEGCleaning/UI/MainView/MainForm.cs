@@ -21,9 +21,10 @@ namespace EEGCleaning
 
         internal Point LastPoint { get; set; } = Point.Empty;
 
-        internal Button ICAButton => m_icaButton;
-
-        internal Button ICAComposeButton => m_icaComposeButton;
+        internal Button ICAControl => m_icaButton;
+        internal ToolStripItem StandardICAControl => m_standradICAToolStripMenuItem;
+        internal ToolStripItem NormalizedICAControl => m_normalizedICAToolStripMenuItem;
+        internal Button ICAComposeControl => m_icaComposeButton;
 
         public MainForm()
         {
@@ -72,12 +73,13 @@ namespace EEGCleaning
             return res;
         }
 
-        internal void RunICADecompose(RecordRange? range = default)
+        internal void RunICADecompose(RecordRange? range = default, bool normalizePower = false)
         {
             var ica = new FastICA()
             {
                 MaxIterationCount = 10000,
                 Tolerance = 1E-06,
+                NormalizePower = normalizePower,
             };
 
             ViewModel.IndependentComponents = ica.Decompose(ViewModel.ProcessedRecord, range);
@@ -129,8 +131,19 @@ namespace EEGCleaning
             m_xTrackBar.Value = (int)ViewModel.ScaleX - 1;
             m_yTrackBar.Value = (int)(ViewModel.ScaleY * 10) - 10;
 
-            m_icaButton.BackColor = (ViewModel.ViewMode == ModelViewMode.ICA) ? SystemColors.ControlDark : SystemColors.Control;
-            m_icaComposeButton.Visible = ViewModel.ViewMode == ModelViewMode.ICA;
+            switch (ViewModel.ViewMode)
+            {
+                case ModelViewMode.Record:
+                    m_icaButton.Menu = m_icaContextMenuStrip;
+                    m_icaButton.BackColor = SystemColors.Control;
+                    m_icaComposeButton.Visible = false;
+                    break;
+                case ModelViewMode.ICA:
+                    m_icaButton.Menu = default;
+                    m_icaButton.BackColor = SystemColors.ControlDark;
+                    m_icaComposeButton.Visible = true;
+                    break;
+            }
 
             UpdateZoom();
         }

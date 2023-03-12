@@ -1,4 +1,6 @@
-﻿namespace EEGCleaning
+﻿using EEGCleaning.UI.Controls;
+
+namespace EEGCleaning
 {
     partial class MainForm
     {
@@ -34,9 +36,9 @@
             m_yTrackBar = new TrackBar();
             m_xLabel = new Label();
             m_yLabel = new Label();
-            m_icaButton = new Button();
+            m_icaButton = new MenuButton();
             m_openFileDialog = new OpenFileDialog();
-            m_loadButton = new UI.Controls.MenuButton();
+            m_loadButton = new MenuButton();
             m_loadContextMenuStrip = new ContextMenuStrip(components);
             loadEEGToolStripMenuItem = new ToolStripMenuItem();
             loadTestDataToolStripMenuItem = new ToolStripMenuItem();
@@ -46,6 +48,9 @@
             m_plotWeightsView = new OxyPlot.WindowsForms.PlotView();
             m_icaComposeButton = new Button();
             m_buttonsPanel = new FlowLayoutPanel();
+            m_icaContextMenuStrip = new ContextMenuStrip(components);
+            m_standradICAToolStripMenuItem = new ToolStripMenuItem();
+            m_normalizedICAToolStripMenuItem = new ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)m_xTrackBar).BeginInit();
             ((System.ComponentModel.ISupportInitialize)m_yTrackBar).BeginInit();
             m_loadContextMenuStrip.SuspendLayout();
@@ -54,6 +59,7 @@
             m_splitContainer.Panel2.SuspendLayout();
             m_splitContainer.SuspendLayout();
             m_buttonsPanel.SuspendLayout();
+            m_icaContextMenuStrip.SuspendLayout();
             SuspendLayout();
             // 
             // m_plotView
@@ -123,6 +129,7 @@
             m_icaButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             m_icaButton.BackColor = SystemColors.Control;
             m_icaButton.Location = new Point(3, 4);
+            m_icaButton.Menu = m_icaContextMenuStrip;
             m_icaButton.Name = "m_icaButton";
             m_icaButton.Size = new Size(70, 29);
             m_icaButton.TabIndex = 3;
@@ -241,6 +248,25 @@
             m_buttonsPanel.Size = new Size(378, 36);
             m_buttonsPanel.TabIndex = 8;
             // 
+            // m_icaContextMenuStrip
+            // 
+            m_icaContextMenuStrip.ImageScalingSize = new Size(20, 20);
+            m_icaContextMenuStrip.Items.AddRange(new ToolStripItem[] { m_standradICAToolStripMenuItem, m_normalizedICAToolStripMenuItem });
+            m_icaContextMenuStrip.Name = "m_icaContextMenuStrip";
+            m_icaContextMenuStrip.Size = new Size(192, 52);
+            // 
+            // m_standradICAToolStripMenuItem
+            // 
+            m_standradICAToolStripMenuItem.Name = "m_standradICAToolStripMenuItem";
+            m_standradICAToolStripMenuItem.Size = new Size(210, 24);
+            m_standradICAToolStripMenuItem.Text = "Standrad ICA";
+            // 
+            // m_normalizedICAToolStripMenuItem
+            // 
+            m_normalizedICAToolStripMenuItem.Name = "m_normalizedICAToolStripMenuItem";
+            m_normalizedICAToolStripMenuItem.Size = new Size(210, 24);
+            m_normalizedICAToolStripMenuItem.Text = "Normalize Power";
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -265,6 +291,7 @@
             m_splitContainer.ResumeLayout(false);
             m_buttonsPanel.ResumeLayout(false);
             m_buttonsPanel.PerformLayout();
+            m_icaContextMenuStrip.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
         }
@@ -276,7 +303,7 @@
         private TrackBar m_yTrackBar;
         private Label m_xLabel;
         private Label m_yLabel;
-        private Button m_icaButton;
+        private MenuButton m_icaButton;
         private OpenFileDialog m_openFileDialog;
         private UI.Controls.MenuButton m_loadButton;
         private ContextMenuStrip m_loadContextMenuStrip;
@@ -288,5 +315,8 @@
         private OxyPlot.WindowsForms.PlotView m_plotWeightsView;
         private FlowLayoutPanel m_buttonsPanel;
         private Button m_icaComposeButton;
+        private ContextMenuStrip m_icaContextMenuStrip;
+        private ToolStripMenuItem m_standradICAToolStripMenuItem;
+        private ToolStripMenuItem m_normalizedICAToolStripMenuItem;
     }
 }

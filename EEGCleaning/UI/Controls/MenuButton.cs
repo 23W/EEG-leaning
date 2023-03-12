@@ -12,8 +12,6 @@ namespace EEGCleaning.UI.Controls
 
         protected override void OnMouseDown(MouseEventArgs mevent)
         {
-            base.OnMouseDown(mevent);
-
             if (Menu != null && mevent.Button == MouseButtons.Left)
             {
                 Point menuLocation;
@@ -28,6 +26,10 @@ namespace EEGCleaning.UI.Controls
                 }
 
                 Menu.Show(this, menuLocation);
+            }
+            else
+            {
+                base.OnMouseDown(mevent);
             }
         }
 

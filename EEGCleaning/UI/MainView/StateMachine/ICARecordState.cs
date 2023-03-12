@@ -39,8 +39,8 @@ namespace EEGCleaning.UI.MainView.StateMachine
 
         protected override string Activate()
         {
-            StateMachine.MainView.ICAButton.Click += OnRunICA;
-            StateMachine.MainView.ICAComposeButton.Click += OnRunICACompose;
+            StateMachine.MainView.ICAControl.Click += OnAbolishCA;
+            StateMachine.MainView.ICAComposeControl.Click += OnRunICACompose;
             StateMachine.EventMouseDown.Event += OnMouseDown;
             StateMachine.EventMouseUp.Event += OnMouseUp;
          
@@ -52,8 +52,8 @@ namespace EEGCleaning.UI.MainView.StateMachine
 
         protected override string Deactivate()
         {
-            StateMachine.MainView.ICAButton.Click -= OnRunICA;
-            StateMachine.MainView.ICAComposeButton.Click -= OnRunICACompose;
+            StateMachine.MainView.ICAControl.Click -= OnAbolishCA;
+            StateMachine.MainView.ICAComposeControl.Click -= OnRunICACompose;
             StateMachine.EventMouseDown.Event -= OnMouseDown;
             StateMachine.EventMouseUp.Event -= OnMouseUp;
 
@@ -116,7 +116,7 @@ namespace EEGCleaning.UI.MainView.StateMachine
             return nextState;
         }
 
-        void OnRunICA(object? sender, EventArgs e)
+        void OnAbolishCA(object? sender, EventArgs e)
         {
             StateMachine.SwitchState(EEGRecordState.Name);
         }

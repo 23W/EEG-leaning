@@ -45,7 +45,8 @@ namespace EEGCleaning.UI.MainView.StateMachine
 
         protected override string Activate()
         {
-            StateMachine.MainView.ICAButton.Click += OnRunICA;
+            StateMachine.MainView.StandardICAControl.Click += OnRunStandardICA;
+            StateMachine.MainView.NormalizedICAControl.Click += OnRunNormalizedICA;
             StateMachine.EventMouseDown.Event += OnMouseDown;
             StateMachine.EventMouseMove.Event += OnMouseMove;
             StateMachine.EventMouseUp.Event += OnMouseUp;
@@ -57,7 +58,8 @@ namespace EEGCleaning.UI.MainView.StateMachine
 
         protected override string Deactivate()
         {
-            StateMachine.MainView.ICAButton.Click -= OnRunICA;
+            StateMachine.MainView.StandardICAControl.Click -= OnRunStandardICA;
+            StateMachine.MainView.NormalizedICAControl.Click -= OnRunNormalizedICA;
             StateMachine.EventMouseDown.Event -= OnMouseDown;
             StateMachine.EventMouseMove.Event -= OnMouseMove;
             StateMachine.EventMouseUp.Event -= OnMouseUp;
@@ -157,9 +159,15 @@ namespace EEGCleaning.UI.MainView.StateMachine
             return nextState;
         }
 
-        void OnRunICA(object? sender, EventArgs e)
+        void OnRunStandardICA(object? sender, EventArgs e)
         {
             StateMachine.MainView.RunICADecompose();
+            StateMachine.SwitchState(ICARecordState.Name);
+        }
+
+        void OnRunNormalizedICA(object? sender, EventArgs e)
+        {
+            StateMachine.MainView.RunICADecompose(normalizePower: true);
             StateMachine.SwitchState(ICARecordState.Name);
         }
 

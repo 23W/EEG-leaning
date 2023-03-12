@@ -12,7 +12,9 @@ namespace EEGCleaning.UI.MainView.StateMachine
             Menu = new ContextMenuStrip();
             Menu.Items.AddRange(new ToolStripItem[]
             {
-                MenuICAItem,
+                MenuStandardICAItem,
+                MenuNormalizedICAItem,
+                MenuSeparator,
                 MenuEditItem,
                 MenuDeleteItem,
             });
@@ -25,7 +27,9 @@ namespace EEGCleaning.UI.MainView.StateMachine
         internal static string Name => nameof(EEGRecordRangeContextMenuState);
 
         ContextMenuStrip Menu { get; init; }
-        ToolStripMenuItem MenuICAItem { get; init; } = new ToolStripMenuItem("ICA");
+        ToolStripSeparator MenuSeparator { get; init; } = new ToolStripSeparator();
+        ToolStripMenuItem MenuStandardICAItem { get; init; } = new ToolStripMenuItem("Standard ICA");
+        ToolStripMenuItem MenuNormalizedICAItem { get; init; } = new ToolStripMenuItem("Normalize Power ICA");
         ToolStripMenuItem MenuEditItem { get; init; } = new ToolStripMenuItem("Edit");
         ToolStripMenuItem MenuDeleteItem { get; init; } = new ToolStripMenuItem("Delete");
 
@@ -50,9 +54,10 @@ namespace EEGCleaning.UI.MainView.StateMachine
 
         protected override string Activate()
         {
-            MenuICAItem.Click += OnMenuICAItemClicked;
-            MenuEditItem.Click += OnMenuEditItemClicked;
-            MenuDeleteItem.Click += OnMenuDeleteItemClicked;
+            MenuStandardICAItem.Click += OnRunStandardICA;
+            MenuNormalizedICAItem.Click += OnRunNormalizedICA;
+            MenuEditItem.Click += OnEditRange;
+            MenuDeleteItem.Click += OnDeleteRange;
 
             Menu.Show(StateMachine.MainView, Point);
             Menu.Closed += OnMenuClosed;
@@ -62,9 +67,10 @@ namespace EEGCleaning.UI.MainView.StateMachine
 
         protected override string Deactivate()
         {
-            MenuICAItem.Click -= OnMenuICAItemClicked;
-            MenuEditItem.Click -= OnMenuEditItemClicked;
-            MenuDeleteItem.Click -= OnMenuDeleteItemClicked;
+            MenuStandardICAItem.Click -= OnRunStandardICA;
+            MenuNormalizedICAItem.Click -= OnRunNormalizedICA;
+            MenuEditItem.Click -= OnEditRange;
+            MenuDeleteItem.Click -= OnDeleteRange;
 
             Menu.Closed -= OnMenuClosed;
             Menu.Hide();
@@ -78,7 +84,7 @@ namespace EEGCleaning.UI.MainView.StateMachine
 
         #region Event Handlers
 
-        void OnMenuICAItemClicked(object? sender, EventArgs e)
+        void OnRunStandardICA(object? sender, EventArgs e)
         {
             var view = StateMachine.MainView;
 
@@ -86,7 +92,15 @@ namespace EEGCleaning.UI.MainView.StateMachine
             StateMachine.SwitchState(ICARecordState.Name);
         }
 
-        void OnMenuEditItemClicked(object? sender, EventArgs e)
+        void OnRunNormalizedICA(object? sender, EventArgs e)
+        {
+            var view = StateMachine.MainView;
+
+            view.RunICADecompose(Range, true);
+            StateMachine.SwitchState(ICARecordState.Name);
+        }
+
+        void OnEditRange(object? sender, EventArgs e)
         {
             var view = StateMachine.MainView;
             var record = view.ViewModel.ProcessedRecord;
@@ -102,7 +116,7 @@ namespace EEGCleaning.UI.MainView.StateMachine
             StateMachine.SwitchState(PrevieousStateName);
         }
 
-        void OnMenuDeleteItemClicked(object? sender, EventArgs e)
+        void OnDeleteRange(object? sender, EventArgs e)
         {
             var view = StateMachine.MainView;
             var record = view.ViewModel.ProcessedRecord;
