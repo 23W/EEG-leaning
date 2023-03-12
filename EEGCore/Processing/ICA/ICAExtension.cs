@@ -1,8 +1,6 @@
-﻿using Accord.Diagnostics;
-using Accord.Statistics.Distributions.Univariate;
-using EEGCore.Data;
-using EEGCore.Processing.Filtering;
+﻿using EEGCore.Data;
 using EEGCore.Utilities;
+using System.Diagnostics;
 
 namespace EEGCore.Processing.ICA
 {
