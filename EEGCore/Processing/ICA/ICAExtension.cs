@@ -4,6 +4,13 @@ using System.Diagnostics;
 
 namespace EEGCore.Processing.ICA
 {
+    public enum SuppressComponents
+    {
+        None,
+        ComponentsOnly,
+        MatrixAndComponents,
+    }
+
     public static class ICAExtension
     {
         public static ICARecord Decompose(this FastICA ica, Record mixture, RecordRange? range = default(RecordRange), int? numOfComponents = default)
@@ -44,25 +51,40 @@ namespace EEGCore.Processing.ICA
             return res;
         }
 
-        public static Record Compose(this FastICA ica, ICARecord sources, bool suppressComponents = false)
+        public static Record Compose(this FastICA ica, ICARecord sources, SuppressComponents suppressComponents = SuppressComponents.None)
         {
             Debug.Assert(sources.LeadsCount > 1);
 
+            var a = GeneralUtilities.CloneMatrix(sources.A);
+
             var sourcesMatrix = sources.GetLeadMatrix();
-            if (suppressComponents)
+            if (suppressComponents != SuppressComponents.None)
             {
                 foreach (var (lead,index) in sources.Leads.WithIndex())
                 {
-                    if (lead is ComponentLead)
+                    if (lead is ComponentLead componentLead)
                     {
-                        var suppressedSamples = sources.BuildLeadSuppress(index);
-                        sourcesMatrix[index] = suppressedSamples;
+                        // "Zero lead" suppression can be done on the matrix
+                        if ((suppressComponents == SuppressComponents.MatrixAndComponents) &&
+                            (componentLead.Suppress == SuppressType.ZeroLead))
+                        {
+                            for (var rowIndex = 0; rowIndex < a.Length; rowIndex++)
+                            {
+                                a[rowIndex][index] = 0;
+                            }
+                        }
+                        // Other suppression methods requires component correction
+                        else
+                        {
+                            var suppressedSamples = sources.BuildLeadSuppress(index);
+                            sourcesMatrix[index] = suppressedSamples;
+                        }
                     }
                 }
             }
 
             var res = new Record();
-            var mixture = ica.Compose(sources.A, sourcesMatrix);
+            var mixture = ica.Compose(a, sourcesMatrix);
 
             if ((sources.X != default) &&
                 (sources.XRange != default))

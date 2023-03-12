@@ -45,5 +45,13 @@ namespace EEGCore.Processing
 
             return result;
         }
+
+        public static double[][] CloneMatrix(double[][] matrix)
+        {
+            var m = Matrix<double>.Build.DenseOfRowArrays(matrix);
+            var result = m.ToRowArrays();
+
+            return result;
+        }
     }
 }

@@ -87,7 +87,7 @@ namespace EEGCleaning
         {
             var ica = new FastICA();
 
-            ViewModel.ProcessedRecord = ica.Compose(ViewModel.IndependentComponents, true);
+            ViewModel.ProcessedRecord = ica.Compose(ViewModel.IndependentComponents, SuppressComponents.MatrixAndComponents);
         }
 
         internal void UpdatePlot(ModelViewMode viewMode)
@@ -503,7 +503,7 @@ namespace EEGCleaning
 
         private void OnLoad(object sender, EventArgs e)
         {
-            LoadRecord(@".\EEGData\Test1\EEG Eye State.arff", RecordFactoryOptions.DefaultEEG);
+            LoadRecord(@".\EEGData\Test1\EEG Eye State.arff", RecordFactoryOptions.DefaultEEGNoFilter);
 
             UpdatePlot(ModelViewMode.Record);
             StateMachine.SwitchState(EEGRecordState.Name);
