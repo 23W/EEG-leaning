@@ -23,6 +23,12 @@ namespace EEGCore.Data
             CutOffHighFreq = 45,
         };
 
+        public static RecordFactoryOptions DefaultEEGNoFilter => new RecordFactoryOptions()
+        {
+            ZeroMean = true,
+            SortLeads = true,
+        };
+
         public static RecordFactoryOptions DefaultEmpty => new RecordFactoryOptions();
     }
 

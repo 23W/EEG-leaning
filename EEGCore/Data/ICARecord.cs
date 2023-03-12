@@ -12,6 +12,8 @@ namespace EEGCore.Data
     {
         None,
         ZeroLead,
+        HiPass10,
+        HiPass20,
         HiPass30,
     }
 
@@ -23,6 +25,8 @@ namespace EEGCore.Data
 
         [JsonIgnore]
         public bool IsArtifact => ComponentType != ComponentType.Unknown;
+
+        public double[] Alternative { get; set; } = Array.Empty<double>();
     }
 
     public class ICARecord : Record

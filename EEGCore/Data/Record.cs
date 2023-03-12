@@ -8,7 +8,7 @@ namespace EEGCore.Data
     {
         public string Name { get; set; } = string.Empty;
 
-        public double[] Samples { get; set; } = new double[0];
+        public double[] Samples { get; set; } = Array.Empty<double>();
     }
 
     public class RecordRange

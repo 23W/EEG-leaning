@@ -23,6 +23,22 @@ namespace EEGCleaning.Utilities
             return res;
         }
 
+        internal static OxyColor GetAlternativeLeadColor(Lead lead)
+        {
+            var res = DefaultLeadColor;
+
+            if (lead is EEGLead eegLead)
+            {
+                res = OxyColors.DarkGray;
+            }
+            else if (lead is ComponentLead componentLead)
+            {
+                res = (componentLead.Suppress == SuppressType.None) ? OxyColors.DarkRed: OxyColors.DarkSlateBlue;
+            }
+
+            return res;
+        }
+
         internal static OxyColor GetLeadColor(LeadType lead)
         {
             var res = DefaultLeadColor;

@@ -213,10 +213,28 @@ namespace EEGCleaning
                     UsePlotModelClipArrea = true,
                     Tag = lead,
                 };
+                var points = lead.Samples.Select((s, index) => new DataPoint(index / record.SampleRate, s));
+                leadSeries.Points.AddRange(points);
 
                 var leadAnnotation = default(Annotation);
+                var leadAlternativeSeries = default(LineSeries);
+
                 if (lead is ComponentLead componentLead)
                 {
+                    if (componentLead.Alternative.Any())
+                    {
+                        leadAlternativeSeries = new LineSeries()
+                        {
+                            Color = ViewUtilities.GetAlternativeLeadColor(lead),
+                            LineStyle = LineStyle.Solid,
+                            YAxisKey = leadAxis.Key,
+                            UsePlotModelClipArrea = true,
+                            Tag = lead,
+                        };
+                        var alternativePoints = componentLead.Alternative.Select((s, index) => new DataPoint(index / record.SampleRate, s));
+                        leadAlternativeSeries.Points.AddRange(alternativePoints);
+                    }
+
                     leadAnnotation = new PointAnnotation()
                     {
                         Shape = componentLead.IsArtifact ? MarkerType.Square : MarkerType.Diamond,
@@ -234,11 +252,13 @@ namespace EEGCleaning
                     SubsribePlotEvents(leadAnnotation);
                 }
 
-                var points = lead.Samples.Select((s, index) => new DataPoint(index / record.SampleRate, s));
-                leadSeries.Points.AddRange(points);
-
                 plotModel.Axes.Add(leadAxis);
                 plotModel.Series.Add(leadSeries);
+
+                if (leadAlternativeSeries != default)
+                {
+                    plotModel.Series.Add(leadAlternativeSeries);
+                }
 
                 if (leadAnnotation != default)
                 {
@@ -520,7 +540,7 @@ namespace EEGCleaning
 
             if (m_openFileDialog.ShowDialog(this) == DialogResult.OK)
             {
-                LoadRecord(m_openFileDialog.FileName, RecordFactoryOptions.DefaultEEG);
+                LoadRecord(m_openFileDialog.FileName, RecordFactoryOptions.DefaultEEGNoFilter);
 
                 UpdatePlot(ModelViewMode.Record);
                 StateMachine.SwitchState(EEGRecordState.Name);

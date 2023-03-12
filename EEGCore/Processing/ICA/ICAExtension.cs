@@ -53,20 +53,12 @@ namespace EEGCore.Processing.ICA
             var sourcesMatrix = sources.GetLeadMatrix();
             if (suppressComponents)
             {
-                var highPass30Filter = FilterFactory.BuildHighPassFilter(sources.SampleRate, 30.0);
-
-                foreach (var (component,index) in sources.Leads.WithIndex())
+                foreach (var (lead,index) in sources.Leads.WithIndex())
                 {
-                    switch ((component as ComponentLead)?.Suppress)
+                    if (lead is ComponentLead)
                     {
-                        case SuppressType.None:
-                            break;
-                        case SuppressType.ZeroLead:
-                            Array.Fill(sourcesMatrix[index], 0);
-                            break;
-                        case SuppressType.HiPass30:
-                            sourcesMatrix[index] = highPass30Filter.Process(sourcesMatrix[index]);
-                            break;
+                        var suppressedSamples = sources.BuildLeadSuppress(index);
+                        sourcesMatrix[index] = suppressedSamples;
                     }
                 }
             }
