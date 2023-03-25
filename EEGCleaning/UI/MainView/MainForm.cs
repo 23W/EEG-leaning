@@ -8,16 +8,21 @@ using OxyPlot;
 using OxyPlot.Annotations;
 using OxyPlot.Axes;
 using OxyPlot.Series;
+using System.Diagnostics;
 
 namespace EEGCleaning
 {
     public partial class MainForm : Form
     {
+        #region Properties
+
         internal RecordViewModel ViewModel { get; set; } = new RecordViewModel();
 
         internal StateMachine StateMachine { get; init; }
 
-        internal PlotModel PlotModel => m_plotView.Model;
+        internal RecordPlotModel PlotModel => (RecordPlotModel)m_plotView.Model;
+        internal TimeSpanAxis? PlotModelXAxis => (TimeSpanAxis?)PlotModel.Axes.FirstOrDefault(a => a.IsHorizontal() && a is TimeSpanAxis);
+        internal IEnumerable<LinearAxis> PlotModelYAxes => PlotModel.Axes.Where(a => a.IsVertical() && a is LinearAxis && a.Tag is Lead).Cast<LinearAxis>();
 
         internal Point LastPoint { get; set; } = Point.Empty;
 
@@ -26,9 +31,80 @@ namespace EEGCleaning
         internal ToolStripItem NormalizedICAControl => m_normalizedICAToolStripMenuItem;
         internal Button ICAComposeControl => m_icaComposeButton;
 
+        #endregion
+
+        #region Internal Properties
+
+        bool InPlotScaleExecution { get; set; } = false;
+        bool InPlotResizing { get; set; } = false;
+
+        SpeedItem[] SpeedItems => new[]
+        {
+            new SpeedItem() { Value = -1 },
+            new SpeedItem() { Value = 7.5 },
+            new SpeedItem() { Value = 15 },
+            new SpeedItem() { Value = 30 },
+            new SpeedItem() { Value = 60 },
+            new SpeedItem() { Value = 120 },
+        };
+
+        AmplItem[] AmplItems => new[]
+        {
+            new AmplItem() { Value = -1 },
+            new AmplItem() { Value = 10 },
+            new AmplItem() { Value = 25 },
+            new AmplItem() { Value = 50 },
+            new AmplItem() { Value = 100 },
+            new AmplItem() { Value = 250 },
+            new AmplItem() { Value = 500 },
+            new AmplItem() { Value = 1000 },
+            new AmplItem() { Value = 1500 },
+            new AmplItem() { Value = 2000 },
+        };
+
+        #endregion
+
+
+        #region Nested classes
+
+        internal class RecordPlotModel : PlotModel
+        {
+            internal event EventHandler? BeforeRendering;
+            internal event EventHandler? AfterRendering;
+
+            IRenderContext? CurrentRenderContext { get; set; } = default;
+            IDisposable? ClipToken { get; set; } = default;
+
+            internal void LockRenderingContext()
+            {
+                ClipToken = CurrentRenderContext?.AutoResetClip(new OxyRect());
+            }
+
+            internal void UnlockRenderingContext()
+            {
+                ClipToken?.Dispose();
+                ClipToken = default;
+            }
+
+            protected override void RenderOverride(IRenderContext rc, OxyRect rect)
+            {
+                CurrentRenderContext = rc;
+                BeforeRendering?.Invoke(this, EventArgs.Empty);
+
+                base.RenderOverride(rc, rect);
+
+                AfterRendering?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        #endregion
+
         public MainForm()
         {
             InitializeComponent();
+
+            m_speedComboBox.Items.AddRange(SpeedItems);
+            m_amplComboBox.Items.AddRange(AmplItems);
 
             StateMachine = new StateMachine(this);
         }
@@ -94,13 +170,18 @@ namespace EEGCleaning
 
         internal void UpdatePlot(ModelViewMode viewMode)
         {
+            var oldViewMode = ViewModel.ViewMode;
             ViewModel.ViewMode = viewMode;
-            ViewModel.ScaleX = 1;
-            ViewModel.ScaleY = 1;
+
+            if (oldViewMode != viewMode)
+            {
+                ViewModel.Position = TimePositionItem.Default;
+                ViewModel.Amplitude = AmplItem.Default;
+            }
 
             UnsubsribePlotEvents(m_plotView.Model);
 
-            var plotModel = /*m_plotView.Model ?? */new PlotModel();
+            var plotModel = new RecordPlotModel();
             var plotWeightsModel = new PlotModel();
             switch (ViewModel.ViewMode)
             {
@@ -118,18 +199,15 @@ namespace EEGCleaning
 
             m_plotView.Model = plotModel;
             m_plotView.ActualController.UnbindAll();
-            m_plotView.ActualController.BindMouseDown(OxyMouseButton.Left, PlotCommands.Track);
+            //m_plotView.ActualController.BindMouseEnter(PlotCommands.HoverSnapTrack);
             m_plotView.ActualController.BindMouseDown(OxyMouseButton.Right, PlotCommands.PanAt);
 
             m_plotWeightsView.Model = plotWeightsModel;
             m_plotWeightsView.ActualController.UnbindAll();
-            m_plotWeightsView.ActualController.BindMouseDown(OxyMouseButton.Left, PlotCommands.Track);
+            //m_plotWeightsView.ActualController.BindMouseEnter(PlotCommands.HoverSnapTrack);
             m_plotWeightsView.ActualController.BindMouseDown(OxyMouseButton.Right, PlotCommands.PanAt);
 
             m_splitContainer.Panel2Collapsed = (ViewModel.ViewMode != ModelViewMode.ICA);
-
-            m_xTrackBar.Value = (int)ViewModel.ScaleX - 1;
-            m_yTrackBar.Value = (int)(ViewModel.ScaleY * 10) - 10;
 
             switch (ViewModel.ViewMode)
             {
@@ -145,7 +223,11 @@ namespace EEGCleaning
                     break;
             }
 
-            UpdateZoom();
+            m_plotView.Model.ResetAllAxes();
+
+            UpdateSpeedBar();
+            UpdateAmplBar();
+            UpdateHScrollBar();
         }
 
         void LoadRecord(string path, RecordFactoryOptions options)
@@ -188,14 +270,18 @@ namespace EEGCleaning
                 MajorGridlineStyle = LineStyle.Solid,
                 MinorGridlineStyle = LineStyle.Solid,
                 FontSize = 9,
+                Minimum = 0,
+                Maximum = record.Duration / record.SampleRate,
                 AbsoluteMinimum = 0,
                 AbsoluteMaximum = record.Duration / record.SampleRate,
+                MaximumPadding = 0,
+                MinimumPadding = 0,
             };
-
+            SubsribePlotEvents(xAxis);
             plotModel.Axes.Add(xAxis);
 
             var maxSignalAmpl = record.GetMaximumAbsoluteValue();
-            var range = Tuple.Create(-maxSignalAmpl, maxSignalAmpl);
+            var signalRange = Tuple.Create(-maxSignalAmpl, maxSignalAmpl);
 
             for (var leadIndex = 0; leadIndex < record.Leads.Count; leadIndex++)
             {
@@ -210,10 +296,10 @@ namespace EEGCleaning
                     EndPosition = (double)(leadAxisIndex + 1) / record.Leads.Count,
                     Position = AxisPosition.Left,
                     MajorGridlineStyle = LineStyle.Solid,
-                    Minimum = range.Item1,
-                    Maximum = range.Item2,
-                    AbsoluteMinimum = range.Item1,
-                    AbsoluteMaximum = range.Item2,
+                    Minimum = signalRange.Item1,
+                    Maximum = signalRange.Item2,
+                    AbsoluteMinimum = signalRange.Item1,
+                    AbsoluteMaximum = signalRange.Item2,
                     IsPanEnabled = false,
                     Tag = lead,
                 };
@@ -402,6 +488,12 @@ namespace EEGCleaning
             plotModel.MouseUp += OnPlotMouseUp;
             plotModel.MouseMove += OnPlotMouseMove;
 #pragma warning restore CS0618 // Type or member is obsolete
+
+            if (plotModel is RecordPlotModel recordPlotModel)
+            {
+                recordPlotModel.BeforeRendering += OnBeforeRecordPlotModelRendering;
+                recordPlotModel.AfterRendering += OnAfterRecordPlotModelRendering;
+            }
         }
 
         void SubsribePlotEvents(PlotElement plotElement)
@@ -410,11 +502,17 @@ namespace EEGCleaning
             {
                 return;
             }
-
 #pragma warning disable CS0618 // Type or member is obsolete
-            plotElement.MouseDown += OnPlotMouseDown;
-            plotElement.MouseUp += OnPlotMouseUp;
-            plotElement.MouseMove += OnPlotMouseMove;
+            if (plotElement is TimeSpanAxis xAxis)
+            {
+                xAxis.AxisChanged += OnXAxisChanged;
+            }
+            else
+            {
+                plotElement.MouseDown += OnPlotMouseDown;
+                plotElement.MouseUp += OnPlotMouseUp;
+                plotElement.MouseMove += OnPlotMouseMove;
+            }
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
@@ -430,6 +528,12 @@ namespace EEGCleaning
             plotModel.MouseUp -= OnPlotMouseUp;
             plotModel.MouseMove -= OnPlotMouseMove;
 #pragma warning restore CS0618 // Type or member is obsolete
+
+            if (plotModel is RecordPlotModel recordPlotModel)
+            {
+                recordPlotModel.BeforeRendering -= OnBeforeRecordPlotModelRendering;
+                recordPlotModel.AfterRendering -= OnAfterRecordPlotModelRendering;
+            }
         }
 
         void UnsubsribePlotEvents(PlotElement plotElement)
@@ -440,33 +544,166 @@ namespace EEGCleaning
             }
 
 #pragma warning disable CS0618 // Type or member is obsolete
-            plotElement.MouseDown -= OnPlotMouseDown;
-            plotElement.MouseUp -= OnPlotMouseUp;
-            plotElement.MouseMove -= OnPlotMouseMove;
+            if (plotElement is TimeSpanAxis xAxis)
+            {
+                xAxis.AxisChanged -= OnXAxisChanged;
+            }
+            else
+            {
+                plotElement.MouseDown -= OnPlotMouseDown;
+                plotElement.MouseUp -= OnPlotMouseUp;
+                plotElement.MouseMove -= OnPlotMouseMove;
+            }
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
-        void UpdateZoom()
+        void UpdateHScrollBar()
         {
-            foreach (var a in m_plotView.Model.Axes)
+            var xAxis = PlotModelXAxis;
+            if (xAxis != default)
             {
-                switch (a.Position)
-                {
-                    case AxisPosition.Left:
-                    case AxisPosition.Right:
-                        a.Reset();
-                        a.ZoomAtCenter(ViewModel.ScaleY);
-                        break;
+                var wholeRange = ViewModel.VisibleRecord.Duration;
+                var viewportRange = (int)((xAxis.ActualMaximum - xAxis.ActualMinimum) * ViewModel.VisibleRecord.SampleRate);
+                var position = (int)(xAxis.ActualMinimum * ViewModel.VisibleRecord.SampleRate);
+                var visible = wholeRange != viewportRange;
 
-                    case AxisPosition.Top:
-                    case AxisPosition.Bottom:
-                        a.Reset();
-                        a.ZoomAtCenter(ViewModel.ScaleX);
-                        break;
-                }
+                m_plotViewHScrollBar.Minimum = 0;
+                m_plotViewHScrollBar.SmallChange = viewportRange / 50;
+                m_plotViewHScrollBar.LargeChange = viewportRange / 2;
+                m_plotViewHScrollBar.Maximum = (wholeRange - viewportRange) + m_plotViewHScrollBar.LargeChange;
+                m_plotViewHScrollBar.Value = position;
+                m_plotViewHScrollBar.Visible = visible;
             }
+        }
 
-            m_plotView.Model.InvalidatePlot(false);
+        void UpdateSpeedBar()
+        {
+            var item = m_speedComboBox.Items
+                                      .Cast<SpeedItem>()
+                                      .FirstOrDefault(s => s.Value == ViewModel.Speed.Value);
+            m_speedComboBox.SelectedItem = item;
+        }
+
+        void UpdateAmplBar()
+        {
+            var item = m_amplComboBox.Items
+                                     .Cast<AmplItem>()
+                                     .FirstOrDefault(a => a.Value == ViewModel.Amplitude.Value);
+            m_amplComboBox.SelectedItem = item;
+        }
+
+        void ScrollPlot(int samplePosition)
+        {
+            Debug.Assert(samplePosition >= 0);
+
+            ScrollPlot(new TimePositionItem() { Value = samplePosition / ViewModel.VisibleRecord.SampleRate });
+        }
+
+        void ScrollPlot(TimePositionItem position)
+        {
+            Debug.Assert(position.Value >= 0);
+
+            var xAxis = PlotModelXAxis;
+            if ((xAxis != default) &&
+                !InPlotScaleExecution)
+            {
+                InPlotScaleExecution = true;
+
+                var viewportRange = xAxis.ActualMaximum - xAxis.ActualMinimum;
+                var newPosition = position.Value;
+
+                ViewModel.Position = position;
+
+                xAxis.Minimum = newPosition;
+                xAxis.Maximum = newPosition + viewportRange;
+                xAxis.Reset();
+                PlotModel.InvalidatePlot(false);
+
+                InPlotScaleExecution = false;
+            }
+        }
+
+        void SpeedPlot(SpeedItem speed)
+        {
+            var xAxis = PlotModelXAxis;
+
+            if ((xAxis != default) &&
+                !InPlotScaleExecution)
+            {
+                InPlotScaleExecution = true;
+
+                ViewModel.Speed = speed;
+
+                if (speed.Value > 0)
+                {
+                    var ptPerMm = ViewUtilities.GetDPMM(this).X;
+                    var viewportRange_mm = PlotModel.PlotArea.Width / ptPerMm;
+                    var viewportRange_sec = viewportRange_mm / speed.Value;
+
+                    xAxis.Minimum = ViewModel.Position.Value;
+                    xAxis.Maximum = ViewModel.Position.Value + viewportRange_sec;
+                }
+                else
+                {
+                    ViewModel.Position = TimePositionItem.Default;
+
+                    xAxis.Minimum = xAxis.AbsoluteMinimum;
+                    xAxis.Maximum = xAxis.AbsoluteMaximum;
+                }
+
+                xAxis.Reset();
+                PlotModel.InvalidatePlot(false);
+
+                UpdateHScrollBar();
+
+                InPlotScaleExecution = false;
+            }
+        }
+
+        void AmplifirePlot(AmplItem amplitude)
+        {
+            var xAxis = PlotModelXAxis;
+
+            if ((xAxis != default) &&
+                !InPlotScaleExecution)
+            {
+                InPlotScaleExecution = true;
+
+                ViewModel.Amplitude = amplitude;
+
+                var maxSignalAmpl = new Lazy<double>(ViewModel.VisibleRecord.GetMaximumAbsoluteValue);
+
+                foreach (var yAxis in PlotModelYAxes)
+                {
+                    if (amplitude.Value > 0)
+                    {
+                        var ptPerMm = ViewUtilities.GetDPMM(this).Y;
+
+                        var viewportRange_pt = Math.Abs(yAxis.Transform(yAxis.ActualMaximum) - yAxis.Transform(0));
+                        var viewportRange_mm = viewportRange_pt / ptPerMm;
+                        var viewportRange_mkV = viewportRange_mm * (amplitude.Value / 10);
+
+                        yAxis.Minimum = -viewportRange_mkV;
+                        yAxis.Maximum = viewportRange_mkV;
+                        yAxis.AbsoluteMinimum = -viewportRange_mkV;
+                        yAxis.AbsoluteMaximum = viewportRange_mkV;
+                    }
+                    else
+                    {
+                        yAxis.Minimum = -maxSignalAmpl.Value;
+                        yAxis.Maximum = maxSignalAmpl.Value;
+                        yAxis.AbsoluteMinimum = -maxSignalAmpl.Value;
+                        yAxis.AbsoluteMaximum = maxSignalAmpl.Value;
+                    }
+
+                    yAxis.Reset();
+                }
+
+                PlotModel.InvalidatePlot(false);
+                UpdateHScrollBar();
+
+                InPlotScaleExecution = false;
+            }
         }
 
         #region Input Events
@@ -512,9 +749,51 @@ namespace EEGCleaning
 
         #endregion
 
+        #region Plot Model Events
+
+        void OnBeforeRecordPlotModelRendering(object? sender, EventArgs e)
+        {
+            if (InPlotResizing)
+            {
+                PlotModel.LockRenderingContext();
+            }
+        }
+
+        void OnAfterRecordPlotModelRendering(object? sender, EventArgs e)
+        {
+            if (InPlotResizing)
+            {
+                InPlotResizing = false;
+
+                PlotModel.UnlockRenderingContext();
+
+                SpeedPlot(ViewModel.Speed);
+                AmplifirePlot(ViewModel.Amplitude);
+
+                PlotModel.InvalidatePlot(false);
+            }
+        }
+
+        void OnXAxisChanged(object? sender, AxisChangedEventArgs e)
+        {
+            if (sender is TimeSpanAxis xAxis)
+            {
+                ViewModel.Position = new TimePositionItem() { Value = xAxis.ActualMinimum };
+
+                UpdateHScrollBar();
+            }
+        }
+
+        void OnPlotViewResized(object sender, EventArgs e)
+        {
+            InPlotResizing = true;
+        }
+
+        #endregion
+
         #region Controls Events
 
-        private void OnLoad(object sender, EventArgs e)
+        void OnLoad(object sender, EventArgs e)
         {
             LoadRecord(@".\EEGData\Test1\EEG Eye State.arff", RecordFactoryOptions.DefaultEEGNoFilter);
 
@@ -522,19 +801,28 @@ namespace EEGCleaning
             StateMachine.SwitchState(EEGRecordState.Name);
         }
 
-        private void OnXScale(object sender, EventArgs e)
+        void OnSpeedSelected(object sender, EventArgs e)
         {
-            ViewModel.ScaleX = m_xTrackBar.Value + 1;
-            UpdateZoom();
+            if (m_speedComboBox.SelectedItem is SpeedItem selectedItem)
+            {
+                SpeedPlot(selectedItem);
+            }
         }
 
-        private void OnYScale(object sender, EventArgs e)
+        void OnAmplSelected(object sender, EventArgs e)
         {
-            ViewModel.ScaleY = (m_yTrackBar.Value + 10) / 10.0;
-            UpdateZoom();
+            if (m_amplComboBox.SelectedItem is AmplItem selectedItem)
+            {
+                AmplifirePlot(selectedItem);
+            }
         }
 
-        private void OnLoadTestData(object sender, EventArgs e)
+        void OnHScroll(object sender, ScrollEventArgs e)
+        {
+            ScrollPlot(m_plotViewHScrollBar.Value);
+        }
+
+        void OnLoadTestData(object sender, EventArgs e)
         {
             m_openFileDialog.InitialDirectory = Directory.GetCurrentDirectory();
 
@@ -547,7 +835,7 @@ namespace EEGCleaning
             }
         }
 
-        private void OnLoadEEGData(object sender, EventArgs e)
+        void OnLoadEEGData(object sender, EventArgs e)
         {
             m_openFileDialog.InitialDirectory = Directory.GetCurrentDirectory();
 
@@ -560,7 +848,7 @@ namespace EEGCleaning
             }
         }
 
-        private void OnSaveData(object sender, EventArgs e)
+        void OnSaveData(object sender, EventArgs e)
         {
             m_saveFileDialog.InitialDirectory = Directory.GetCurrentDirectory();
 

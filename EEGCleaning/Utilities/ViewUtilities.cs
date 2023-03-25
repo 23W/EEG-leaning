@@ -54,5 +54,26 @@ namespace EEGCleaning.Utilities
 
             return res;
         }
+
+        internal static PointF GetDPI(Control control)
+        {
+            PointF dpi = PointF.Empty;
+
+            using (Graphics g = control.CreateGraphics())
+            {
+                dpi.X = g.DpiX;
+                dpi.Y = g.DpiY;
+            }
+
+            return dpi;
+        }
+
+        internal static PointF GetDPMM(Control control)
+        {
+            PointF dpi = GetDPI(control);
+            dpi = new PointF(dpi.X / 25.4f, dpi.Y / 25.4f);
+
+            return dpi;
+        }
     }
 }
