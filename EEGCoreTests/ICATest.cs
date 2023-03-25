@@ -14,7 +14,7 @@ namespace EEGCoreTests
     [DeploymentItem("TestData\\")]
     public class ICATest
     {
-        int MaxDecompositionAttampts => 5;
+        int MaxDecompositionAttempts => 5;
 
         public TestContext? TestContext { get; set; }
 
@@ -68,9 +68,9 @@ namespace EEGCoreTests
                     }
                     else
                     {
-                        if (attempt == MaxDecompositionAttampts)
+                        if (attempt == MaxDecompositionAttempts)
                         {
-                            Assert.IsTrue(false, $"Component {componentIndex} was not found in Sources in {MaxDecompositionAttampts} attempts");
+                            Assert.IsTrue(false, $"Component {componentIndex} was not found in Sources in {MaxDecompositionAttempts} attempts");
                         }
                         else
                         {
@@ -80,7 +80,7 @@ namespace EEGCoreTests
                     }
                 }
             }
-            while (!isValidDecomposition && (attempt < MaxDecompositionAttampts));
+            while (!isValidDecomposition && (attempt < MaxDecompositionAttempts));
 
             // Normilize (L2 Norm) A and A estimation by columns
             var aNorm = a;
@@ -97,7 +97,7 @@ namespace EEGCoreTests
             }
 
             // Output the first valid result
-            TestContext?.WriteLine($"Valid in {attempt} attemp(s) from {MaxDecompositionAttampts}");
+            TestContext?.WriteLine($"Valid in {attempt} attemp(s) from {MaxDecompositionAttempts}");
             TestContext?.WriteLine($"Permutations: {string.Join(",", permitations)}");
             TestContext?.Write($"L2 Nrom A src: {aNorm}");
             TestContext?.Write($"L2 Nrom A est: {aEstNorm}");
