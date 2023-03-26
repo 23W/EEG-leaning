@@ -38,8 +38,10 @@ namespace EEGCore.Data
         public bool IsEyeArtifact => ArtifactInfo.Any(info => info.ArtifactType == ArtifactType.EyeArtifact);
 
         [JsonIgnore]
-        public bool IsElectrodeArtifact => ArtifactInfo.Any(info => info.ArtifactType == ArtifactType.ReferenceElectrodeArtifact ||
-                                                                    info.ArtifactType == ArtifactType.SingleElectrodeArtifact);
+        public bool IsReferenceElectrodeArtifact => ArtifactInfo.Any(info => info.ArtifactType == ArtifactType.ReferenceElectrodeArtifact);
+
+        [JsonIgnore]
+        public bool IsSingleElectrodeArtifact => ArtifactInfo.Any(info => info.ArtifactType == ArtifactType.SingleElectrodeArtifact);
 
         public double[] Alternative { get; set; } = Array.Empty<double>();
     }

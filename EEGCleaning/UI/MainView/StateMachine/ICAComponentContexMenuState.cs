@@ -13,6 +13,8 @@ namespace EEGCleaning.UI.MainView.StateMachine
             Menu.Items.AddRange(new ToolStripItem[]
             {
                 MenuEyeArtifact,
+                MenuReferenceElectrodeArtifact,
+                MenuSingleElectrodeArtifact,
                 MenuSeparator,
                 MenuNotSuppress,
                 MenuZeroLeadSuppress,
@@ -30,6 +32,8 @@ namespace EEGCleaning.UI.MainView.StateMachine
 
         ContextMenuStrip Menu { get; init; } = new ContextMenuStrip();
         ToolStripMenuItem MenuEyeArtifact { get; init; } = new ToolStripMenuItem("Eye Artifact");
+        ToolStripMenuItem MenuReferenceElectrodeArtifact { get; init; } = new ToolStripMenuItem("Reference Electrode Artifact");
+        ToolStripMenuItem MenuSingleElectrodeArtifact { get; init; } = new ToolStripMenuItem("Single Electrode Artifact");
         ToolStripSeparator MenuSeparator { get; init; } = new ToolStripSeparator();
         ToolStripMenuItem MenuNotSuppress { get; init; } = new ToolStripMenuItem("None");
         ToolStripMenuItem MenuZeroLeadSuppress { get; init; } = new ToolStripMenuItem("Zero Lead");
@@ -61,6 +65,8 @@ namespace EEGCleaning.UI.MainView.StateMachine
         protected override string Activate()
         {
             MenuEyeArtifact.Checked = ComponentLead.IsEyeArtifact;
+            MenuReferenceElectrodeArtifact.Checked = ComponentLead.IsReferenceElectrodeArtifact;
+            MenuSingleElectrodeArtifact.Checked = ComponentLead.IsSingleElectrodeArtifact;
             MenuNotSuppress.Checked = ComponentLead.Suppress == SuppressType.None;
             MenuZeroLeadSuppress.Checked = ComponentLead.Suppress == SuppressType.ZeroLead;
             MenuHiPass10Suppress.Checked = ComponentLead.Suppress == SuppressType.HiPass10;
