@@ -60,7 +60,7 @@ namespace EEGCleaning.UI.MainView.StateMachine
 
         protected override string Activate()
         {
-            MenuEyeArtifact.Checked = ComponentLead.ComponentType == ComponentType.EyeArtifact;
+            MenuEyeArtifact.Checked = ComponentLead.IsEyeArtifact;
             MenuNotSuppress.Checked = ComponentLead.Suppress == SuppressType.None;
             MenuZeroLeadSuppress.Checked = ComponentLead.Suppress == SuppressType.ZeroLead;
             MenuHiPass10Suppress.Checked = ComponentLead.Suppress == SuppressType.HiPass10;
@@ -103,7 +103,14 @@ namespace EEGCleaning.UI.MainView.StateMachine
 
         void OnMenuEyeArtifactItemClicked(object? sender, EventArgs e)
         {
-            ComponentLead.ComponentType = ComponentLead.IsArtifact ? ComponentType.Unknown : ComponentType.EyeArtifact;
+            if (ComponentLead.IsEyeArtifact)
+            {
+                ComponentLead.RemoveArtifactInfo(ArtifactType.EyeArtifact);
+            }
+            else
+            {
+                ComponentLead.AddArtifactInfo(ArtifactType.EyeArtifact);
+            }
 
             StateMachine.MainView.UpdatePlot();
             StateMachine.SwitchState(PrevieousStateName);

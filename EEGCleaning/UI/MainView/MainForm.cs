@@ -3,6 +3,7 @@ using EEGCleaning.UI.MainView.StateMachine;
 using EEGCleaning.Utilities;
 using EEGCore.Data;
 using EEGCore.Processing;
+using EEGCore.Processing.Analysis;
 using EEGCore.Processing.ICA;
 using OxyPlot;
 using OxyPlot.Annotations;
@@ -60,6 +61,12 @@ namespace EEGCleaning
             new AmplItem() { Value = 1000 },
             new AmplItem() { Value = 1500 },
             new AmplItem() { Value = 2000 },
+        };
+
+        IEnumerable<AnalyzerBase<ComponentArtifactResult>> IndependentComponentAnalyzers => new List<AnalyzerBase<ComponentArtifactResult>>()
+        {
+            new ElectrodeArtifactDetector(),
+            new EyeArtifactDetector(),
         };
 
         #endregion
@@ -149,7 +156,7 @@ namespace EEGCleaning
             return res;
         }
 
-        internal void RunICADecompose(RecordRange? range = default, bool normalizePower = false)
+        internal void RunICADecompose(RecordRange? range = default, bool normalizePower = false, bool analyzeComponents = true)
         {
             var ica = new FastICA()
             {
@@ -159,6 +166,14 @@ namespace EEGCleaning
             };
 
             ViewModel.IndependentComponents = ica.Decompose(ViewModel.ProcessedRecord, range);
+
+            if (analyzeComponents)
+            {
+                foreach (var analyzer in IndependentComponentAnalyzers)
+                {
+                    analyzer.Analyze(ViewModel.IndependentComponents);
+                }
+            }
         }
 
         internal void RunICACompose()

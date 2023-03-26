@@ -42,7 +42,6 @@ namespace EEGCore.Processing.ICA
                 Leads = icaResult.Sources.Select((sourceSamples, sourceIndex) => new ComponentLead()
                 {
                     Name = $"IC{sourceIndex + 1}",
-                    ComponentType = ComponentType.Unknown,
                     Suppress = SuppressType.None,
                     Samples = sourceSamples
                 }).Cast<Lead>().ToList()

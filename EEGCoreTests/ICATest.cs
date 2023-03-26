@@ -116,7 +116,6 @@ namespace EEGCoreTests
                 Leads = dataRecord.Leads.Select(lead => new ComponentLead()
                 {
                     Name = lead.Name,
-                    ComponentType = ComponentType.Unknown,
                     Samples = lead.Samples,
                 }).Cast<Lead>().ToList(),
             };

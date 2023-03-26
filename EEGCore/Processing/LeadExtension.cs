@@ -28,4 +28,28 @@ namespace EEGCore.Processing
             return json;
         }
     }
+
+    public static class ComponentLeadExtension
+    {
+        public static void RemoveArtifactInfo(this ComponentLead lead, ArtifactType artifactType)
+        {
+            lead.ArtifactInfo.RemoveAll(info => info.ArtifactType == artifactType);
+        }
+
+        public static void AddArtifactInfo(this ComponentLead lead, ArtifactType artifactType, bool removeOtherSameType = true)
+        {
+            AddArtifactInfo(lead, new ArtifactInfo() { ArtifactType = artifactType, Probaprobability = 1.0 }, removeOtherSameType);
+        }
+
+        public static void AddArtifactInfo(this ComponentLead lead, ArtifactInfo artifactInfo, bool removeOtherSameType)
+        {
+            if (removeOtherSameType)
+            {
+                RemoveArtifactInfo(lead, artifactInfo.ArtifactType);
+            }
+
+            lead.ArtifactInfo.Add(artifactInfo);
+            lead.ArtifactInfo.Sort((a1, a2) => (int)Math.Round((a1.Probaprobability - a2.Probaprobability) * 100));
+        }
+    }
 }

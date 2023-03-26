@@ -4,18 +4,14 @@ using System.Diagnostics;
 
 namespace EEGCore.Processing.Analysis
 {
-    public class EyeArtifactResult : AnalysisResult
-    {
 
-    }
-
-    public class EyeArtifactDetector
+    public class EyeArtifactDetector : AnalyzerBase<ComponentArtifactResult>
     {
-        public EyeArtifactResult Analyze(ICARecord input)
+        public override ComponentArtifactResult Analyze(ICARecord input)
         {
             Debug.Assert(input.LeadsCount > 0);
 
-            var res = new EyeArtifactResult();
+            var res = new ComponentArtifactResult();
 
             if (input.X == default ||
                !input.X.Leads.Any(l=>l is EEGLead))
