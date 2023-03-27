@@ -43,8 +43,11 @@ namespace EEGCleaning.UI.MainView.StateMachine
             StateMachine.MainView.ICAComposeControl.Click += OnRunICACompose;
             StateMachine.EventMouseDown.Event += OnMouseDown;
             StateMachine.EventMouseUp.Event += OnMouseUp;
-         
-            StateMachine.MainView.UpdatePlot(ModelViewMode.ICA);
+
+            if (StateMachine.MainView.ViewModel.ViewMode != ModelViewMode.ICA)
+            {
+                StateMachine.MainView.UpdatePlot(ModelViewMode.ICA);
+            }
 
             return string.Empty;
 

@@ -36,8 +36,8 @@ namespace EEGCleaning
 
         #region Internal Properties
 
-        bool InPlotScaleExecution { get; set; } = false;
-        bool InPlotResizing { get; set; } = false;
+        bool NeedPlotRescale { get; set; } = false;
+        bool InPlotRescaleExecution { get; set; } = false;
 
         SpeedItem[] SpeedItems => new[]
         {
@@ -91,6 +91,7 @@ namespace EEGCleaning
             {
                 ClipToken?.Dispose();
                 ClipToken = default;
+                CurrentRenderContext = default;
             }
 
             protected override void RenderOverride(IRenderContext rc, OxyRect rect)
@@ -185,6 +186,8 @@ namespace EEGCleaning
 
         internal void UpdatePlot(ModelViewMode viewMode)
         {
+            NeedPlotRescale = true;
+
             var oldViewMode = ViewModel.ViewMode;
             ViewModel.ViewMode = viewMode;
 
@@ -620,9 +623,9 @@ namespace EEGCleaning
 
             var xAxis = PlotModelXAxis;
             if ((xAxis != default) &&
-                !InPlotScaleExecution)
+                !InPlotRescaleExecution)
             {
-                InPlotScaleExecution = true;
+                InPlotRescaleExecution = true;
 
                 var viewportRange = xAxis.ActualMaximum - xAxis.ActualMinimum;
                 var newPosition = position.Value;
@@ -634,7 +637,7 @@ namespace EEGCleaning
                 xAxis.Reset();
                 PlotModel.InvalidatePlot(false);
 
-                InPlotScaleExecution = false;
+                InPlotRescaleExecution = false;
             }
         }
 
@@ -643,9 +646,9 @@ namespace EEGCleaning
             var xAxis = PlotModelXAxis;
 
             if ((xAxis != default) &&
-                !InPlotScaleExecution)
+                !InPlotRescaleExecution)
             {
-                InPlotScaleExecution = true;
+                InPlotRescaleExecution = true;
 
                 ViewModel.Speed = speed;
 
@@ -671,7 +674,7 @@ namespace EEGCleaning
 
                 UpdateHScrollBar();
 
-                InPlotScaleExecution = false;
+                InPlotRescaleExecution = false;
             }
         }
 
@@ -680,9 +683,9 @@ namespace EEGCleaning
             var xAxis = PlotModelXAxis;
 
             if ((xAxis != default) &&
-                !InPlotScaleExecution)
+                !InPlotRescaleExecution)
             {
-                InPlotScaleExecution = true;
+                InPlotRescaleExecution = true;
 
                 ViewModel.Amplitude = amplitude;
 
@@ -717,7 +720,7 @@ namespace EEGCleaning
                 PlotModel.InvalidatePlot(false);
                 UpdateHScrollBar();
 
-                InPlotScaleExecution = false;
+                InPlotRescaleExecution = false;
             }
         }
 
@@ -768,7 +771,7 @@ namespace EEGCleaning
 
         void OnBeforeRecordPlotModelRendering(object? sender, EventArgs e)
         {
-            if (InPlotResizing)
+            if (NeedPlotRescale)
             {
                 PlotModel.LockRenderingContext();
             }
@@ -776,22 +779,21 @@ namespace EEGCleaning
 
         void OnAfterRecordPlotModelRendering(object? sender, EventArgs e)
         {
-            if (InPlotResizing)
+            if (NeedPlotRescale)
             {
-                InPlotResizing = false;
+                NeedPlotRescale = false;
 
                 PlotModel.UnlockRenderingContext();
 
+                ScrollPlot(ViewModel.Position);
                 SpeedPlot(ViewModel.Speed);
                 AmplifirePlot(ViewModel.Amplitude);
-
-                PlotModel.InvalidatePlot(false);
             }
         }
 
         void OnXAxisChanged(object? sender, AxisChangedEventArgs e)
         {
-            if (sender is TimeSpanAxis xAxis)
+            if (!NeedPlotRescale && sender is TimeSpanAxis xAxis)
             {
                 ViewModel.Position = new TimePositionItem() { Value = xAxis.ActualMinimum };
 
@@ -801,7 +803,7 @@ namespace EEGCleaning
 
         void OnPlotViewResized(object sender, EventArgs e)
         {
-            InPlotResizing = true;
+            NeedPlotRescale = true;
         }
 
         #endregion

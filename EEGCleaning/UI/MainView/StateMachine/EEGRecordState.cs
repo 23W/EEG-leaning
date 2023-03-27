@@ -51,7 +51,10 @@ namespace EEGCleaning.UI.MainView.StateMachine
             StateMachine.EventMouseMove.Event += OnMouseMove;
             StateMachine.EventMouseUp.Event += OnMouseUp;
 
-            StateMachine.MainView.UpdatePlot(ModelViewMode.Record);
+            if (StateMachine.MainView.ViewModel.ViewMode != ModelViewMode.Record)
+            {
+                StateMachine.MainView.UpdatePlot(ModelViewMode.Record);
+            }
 
             return string.Empty;
         }
