@@ -14,19 +14,21 @@ namespace EEGCore.Processing.Analysis
 
     public class ElectrodeArtifactDetector : AnalyzerBase<ComponentArtifactResult>
     {
+        public ICARecord Input { get; init; } = new ICARecord();
+
         public double SingleElectrodeThreshold { get; set; } = 0.85;
 
         public double ReferenceElectrodeSlope { get; set; } = Math.Tan(1 * Math.PI / 180);
         public double ReferenceElectrodeMaxDistance { get; set; } = 0.2;
 
-        public override ComponentArtifactResult Analyze(ICARecord input)
+        public override ComponentArtifactResult Analyze()
         {
             var res = new ComponentArtifactResult();
 
-            if (input.X != default(Record))
+            if (Input.X != default(Record))
             {
-                var res1 = AnalyzeSingleElectrodeArtifact(input);
-                var res2 = AnalyzeReferenceElectrodeArtifact(input);
+                var res1 = AnalyzeSingleElectrodeArtifact();
+                var res2 = AnalyzeReferenceElectrodeArtifact();
 
                 res.Succeed = res1.Succeed || res2.Succeed;
                 res.ArticatComponents = res1.ArticatComponents.Union(res2.ArticatComponents).ToList();
@@ -56,18 +58,18 @@ namespace EEGCore.Processing.Analysis
             return res;
         }
 
-        ComponentArtifactResult AnalyzeSingleElectrodeArtifact(ICARecord input)
+        ComponentArtifactResult AnalyzeSingleElectrodeArtifact()
         {
-            Debug.Assert(input.X != default);
+            Debug.Assert(Input.X != default);
 
             var res = new ComponentArtifactResult();
 
-            var signatures = BuildSingleElectrodeArtifactSignatures(input.X);
+            var signatures = BuildSingleElectrodeArtifactSignatures(Input.X);
             var artefacts = new HashSet<ComponentLead>();
 
-            foreach (var (lead, componentIndex) in input.Leads.Cast<ComponentLead>().WithIndex())
+            foreach (var (lead, componentIndex) in Input.Leads.Cast<ComponentLead>().WithIndex())
             {
-                var componentWeights = input.GetMixingVector(componentIndex);
+                var componentWeights = Input.GetMixingVector(componentIndex);
 
                 foreach (var signature in signatures.Where(s => s.Length == componentWeights.Length))
                 {
@@ -92,17 +94,17 @@ namespace EEGCore.Processing.Analysis
             return res;
         }
 
-        ComponentArtifactResult AnalyzeReferenceElectrodeArtifact(ICARecord input)
+        ComponentArtifactResult AnalyzeReferenceElectrodeArtifact()
         {
-            Debug.Assert(input.X != default);
+            Debug.Assert(Input.X != default);
 
             var res = new ComponentArtifactResult();
 
             var artefacts = new HashSet<ComponentLead>();
 
-            foreach (var (lead, componentIndex) in input.Leads.Cast<ComponentLead>().WithIndex())
+            foreach (var (lead, componentIndex) in Input.Leads.Cast<ComponentLead>().WithIndex())
             {
-                var weights = input.GetMixingVector(componentIndex);
+                var weights = Input.GetMixingVector(componentIndex);
 
                 // all weights have same sign
                 var firstWeight = weights.First(w => w != 0);

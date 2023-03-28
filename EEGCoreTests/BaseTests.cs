@@ -27,6 +27,19 @@ namespace EEGCoreTests
         };
 
         [TestMethod]
+        public void Test1_LeadCode()
+        {
+            foreach(var leadCode in Enum.GetValues(typeof(LeadCode))
+                                        .Cast<LeadCode>()
+                                        .Select(l => Tuple.Create(l.ToString().ToLower(), l)))
+            {
+                Assert.IsTrue(DataUtilities.GetEEGLeadCodeByName(leadCode.Item1) == leadCode.Item2);
+            }
+
+            Assert.IsTrue(DataUtilities.GetEEGLeadCodeByName("Unknown Name") == default(LeadCode?));
+        }
+
+        [TestMethod]
         public void Test1_ReadFactory()
         {
             var factory = new RecordFactory();

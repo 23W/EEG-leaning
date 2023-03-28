@@ -11,6 +11,6 @@ namespace EEGCore.Processing.Analysis
 
     public abstract class AnalyzerBase<T> where T : AnalysisResult
     {
-        public abstract T Analyze(ICARecord input);
+        public abstract T Analyze();
     }
 }

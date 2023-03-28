@@ -4,6 +4,19 @@ using MathNet.Numerics.Statistics;
 
 namespace EEGCore.Processing
 {
+    public static class NumericExtensions
+    {
+        public static double ToRadians(this double val)
+        {
+            return Math.PI * val / 180;
+        }
+
+        public static double ToDegrees(this double val)
+        {
+            return val * 180 / Math.PI;
+        }
+    }
+
     public static class GeneralUtilities
     {
         public static double GetMaximum(double[] samples)

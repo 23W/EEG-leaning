@@ -2,9 +2,9 @@
 
 namespace EEGCore.Utilities
 {
-    internal static class DataUtilities
+    public static class DataUtilities
     {
-        internal static LeadType GetEEGLeadTypeByName(string leadName)
+        public static LeadType GetEEGLeadTypeByName(string leadName)
         {
             var leadType = LeadType.Unknown;
 
@@ -31,6 +31,20 @@ namespace EEGCore.Utilities
             }
 
             return leadType;
+        }
+
+        public static LeadCode? GetEEGLeadCodeByName(string leadName)
+        {
+            leadName = leadName.Replace(" ", "")
+                               .Replace("-", "")
+                               .ToLower();
+
+            var leadCode = Enum.GetValues(typeof(LeadCode))
+                               .Cast<LeadCode>()
+                               .Select(l => Tuple.Create(l.ToString().ToLower(), l))
+                               .FirstOrDefault(l => l.Item1.Equals(leadName));
+
+            return leadCode?.Item2;
         }
 
         internal static int ComparetTo(Lead l1, Lead l2)

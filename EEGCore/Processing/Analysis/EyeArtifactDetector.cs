@@ -4,24 +4,25 @@ using System.Diagnostics;
 
 namespace EEGCore.Processing.Analysis
 {
-
     public class EyeArtifactDetector : AnalyzerBase<ComponentArtifactResult>
     {
-        public override ComponentArtifactResult Analyze(ICARecord input)
+        public ICARecord Input { get; init; } = new ICARecord();
+
+        public override ComponentArtifactResult Analyze()
         {
-            Debug.Assert(input.LeadsCount > 0);
+            Debug.Assert(Input.LeadsCount > 0);
 
             var res = new ComponentArtifactResult();
 
-            if (input.X == default ||
-               !input.X.Leads.Any(l=>l is EEGLead))
+            if (Input.X == default ||
+               !Input.X.Leads.Any(l=>l is EEGLead))
             {
                 return res;
             }
 
-            foreach(var (componentLead, index) in input.Leads.WithIndex())
+            foreach(var (componentLead, index) in Input.Leads.WithIndex())
             {
-                var componentWeights = input.GetMixingVector(index);
+                var componentWeights = Input.GetMixingVector(index);
             }
 
             return res;

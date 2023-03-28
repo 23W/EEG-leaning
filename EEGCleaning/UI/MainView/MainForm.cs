@@ -5,11 +5,13 @@ using EEGCore.Data;
 using EEGCore.Processing;
 using EEGCore.Processing.Analysis;
 using EEGCore.Processing.ICA;
+using EEGCore.Utilities;
 using OxyPlot;
 using OxyPlot.Annotations;
 using OxyPlot.Axes;
 using OxyPlot.Series;
 using System.Diagnostics;
+using System.Text.Json;
 
 namespace EEGCleaning
 {
@@ -61,12 +63,6 @@ namespace EEGCleaning
             new AmplItem() { Value = 1000 },
             new AmplItem() { Value = 1500 },
             new AmplItem() { Value = 2000 },
-        };
-
-        IEnumerable<AnalyzerBase<ComponentArtifactResult>> IndependentComponentAnalyzers => new List<AnalyzerBase<ComponentArtifactResult>>()
-        {
-            new ElectrodeArtifactDetector(),
-            new EyeArtifactDetector(),
         };
 
         #endregion
@@ -170,11 +166,23 @@ namespace EEGCleaning
 
             if (analyzeComponents)
             {
-                foreach (var analyzer in IndependentComponentAnalyzers)
+                foreach (var analyzer in BuildICAAnalyzers(ViewModel.IndependentComponents))
                 {
-                    analyzer.Analyze(ViewModel.IndependentComponents);
+                    analyzer.Analyze();
                 }
             }
+
+#if DEBUG
+            var currentPath = Directory.GetCurrentDirectory();
+            File.WriteAllText(Path.Combine(currentPath, "ICA.json"), ViewModel.IndependentComponents.ToJson());
+
+            foreach(var (lead, componentIndex) in ViewModel.IndependentComponents.Leads.Cast<ComponentLead>().WithIndex())
+            {
+                var componentWeights = ViewModel.IndependentComponents.GetMixingVector(componentIndex);
+                File.WriteAllText(Path.Combine(currentPath, $"ICA-{lead.Name}.json"), JsonSerializer.Serialize(componentWeights));
+            }
+#endif
+
         }
 
         internal void RunICACompose()
@@ -246,6 +254,16 @@ namespace EEGCleaning
             UpdateSpeedBar();
             UpdateAmplBar();
             UpdateHScrollBar();
+        }
+
+        static IEnumerable<AnalyzerBase<ComponentArtifactResult>> BuildICAAnalyzers(ICARecord input)
+        {
+            var res = new List<AnalyzerBase<ComponentArtifactResult>>()
+            {
+                new ElectrodeArtifactDetector(),
+                new EyeArtifactDetector(),
+            };
+            return res;
         }
 
         void LoadRecord(string path, RecordFactoryOptions options)
