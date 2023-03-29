@@ -16,7 +16,7 @@ namespace EEGCore.Processing.Model
         // ε - brain dielectric constant (10-50)
         public double CalcPotential(EEGCoordinate scalpLocation)
         {
-            Debug.Assert(scalpLocation.R.AlmostEqual(1));
+            Debug.Assert(scalpLocation.R.AlmostEqual(1, 5));
 
             var factor = 1 / (4 * Math.PI * Epsilon);
 
