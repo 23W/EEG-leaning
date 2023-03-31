@@ -1,3 +1,4 @@
+using Accord.Statistics.Analysis;
 using EEGCleaning.Model;
 using EEGCleaning.UI.MainView.StateMachine;
 using EEGCleaning.Utilities;
@@ -169,6 +170,29 @@ namespace EEGCleaning
                 foreach (var analyzer in BuildICAAnalyzers(ViewModel.IndependentComponents))
                 {
                     analyzer.Analyze();
+                }
+
+                foreach(var (lead, componentIndex) in ViewModel.IndependentComponents.Leads.Cast<ComponentLead>().WithIndex())
+                {
+                    if (lead.IsReferenceElectrodeArtifact ||
+                        lead.IsSingleElectrodeArtifact)
+                    {
+                        lead.Suppress = SuppressType.ZeroLead;
+                    }
+                    else if (lead.IsEyeArtifact)
+                    {
+                        // TODO: It's better to use HiPass filter suppressing, but currently filter works with signal shifting.
+                        //       Revisit this place after filter updating.
+                        //lead.Suppress = SuppressType.HiPass20;
+                        lead.Suppress = SuppressType.ZeroLead;
+                    }
+                    else
+                    {
+                        lead.Suppress = SuppressType.None;
+                    }
+
+                    // Build suppress alternative
+                    ViewModel.IndependentComponents.BuildLeadAlternativeSuppress(componentIndex);
                 }
             }
 
