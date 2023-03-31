@@ -8,11 +8,22 @@ namespace EEGCore.Processing.Model
 {
     public static class ScalpSphere
     {
+        static ScalpSphere()
+        {
+            m_dictionary = BuildDictionary();
+        }
+
+        public static bool IsKnownLead(string leadName)
+        {
+            var res = m_dictionary.ContainsKey(leadName.ToLower());
+            return res;
+        }
+
         public static Vector? GetLeadXYZ(string leadName)
         {
             var res = default(Vector?);
 
-            if (Dictionary.Value.TryGetValue(leadName.ToLower(), out Vector coordinates))
+            if (m_dictionary.TryGetValue(leadName.ToLower(), out Vector coordinates))
             {
                 res = coordinates;
             }
@@ -69,7 +80,7 @@ namespace EEGCore.Processing.Model
             return res;
         }
 
-        static Lazy<Dictionary<string, Vector>> Dictionary => new Lazy<Dictionary<string, Vector>>(() =>
+        static Dictionary<string, Vector> BuildDictionary()
         {
             var res = new Dictionary<string, Vector>();
 
@@ -88,8 +99,8 @@ namespace EEGCore.Processing.Model
                         Debug.Assert(values.Length == 4);
 
                         res.Add(values[0].ToLower(),
-                                new Vector() 
-                                { 
+                                new Vector()
+                                {
                                     X = Convert.ToDouble(values[1], CultureInfo.InvariantCulture),
                                     Y = Convert.ToDouble(values[2], CultureInfo.InvariantCulture),
                                     Z = Convert.ToDouble(values[3], CultureInfo.InvariantCulture),
@@ -99,6 +110,8 @@ namespace EEGCore.Processing.Model
             }
 
             return res;
-        });
+        }
+
+        static Dictionary<string, Vector> m_dictionary;
     }
 }

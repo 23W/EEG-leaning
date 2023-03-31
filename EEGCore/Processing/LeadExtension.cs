@@ -41,15 +41,25 @@ namespace EEGCore.Processing
             AddArtifactInfo(lead, new ArtifactInfo() { ArtifactType = artifactType, Probaprobability = 1.0 }, removeOtherSameType);
         }
 
-        public static void AddArtifactInfo(this ComponentLead lead, ArtifactInfo artifactInfo, bool removeOtherSameType)
+        public static void AddArtifactInfo(this ComponentLead lead, ArtifactInfo artifactInfo, bool removeOtherSameType = true)
         {
+            bool add = true;
+
             if (removeOtherSameType)
             {
-                RemoveArtifactInfo(lead, artifactInfo.ArtifactType);
+                add = !lead.ArtifactInfo.Any(a => a.ArtifactType == artifactInfo.ArtifactType &&
+                                                  a.Probaprobability >= artifactInfo.Probaprobability);
+                if (add)
+                {
+                    RemoveArtifactInfo(lead, artifactInfo.ArtifactType);
+                }
             }
 
-            lead.ArtifactInfo.Add(artifactInfo);
-            lead.ArtifactInfo.Sort((a1, a2) => (int)Math.Round((a1.Probaprobability - a2.Probaprobability) * 100));
+            if (add)
+            {
+                lead.ArtifactInfo.Add(artifactInfo);
+                lead.ArtifactInfo.Sort((a1, a2) => (int)Math.Round((a1.Probaprobability - a2.Probaprobability) * 100));
+            }
         }
     }
 }

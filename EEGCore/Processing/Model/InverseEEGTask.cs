@@ -10,23 +10,6 @@ using Vector = EEGCore.Data.Vector;
 
 namespace EEGCore.Processing.Model
 {
-    public class DipoleResult
-    {
-        public ComponentLead Lead { get; set; } = new ComponentLead();
-
-        public Dipole Dipole { get; set; } = new Dipole();
-
-        public double[] ModelWeights { get; set; } = Array.Empty<double>();
-
-        public double[] ComponentWeights { get; set; } = Array.Empty<double>();
-
-        public Vector[] WeightLocations { get; set; } = Array.Empty<Vector>();
-
-        public double Probaprobability { get; set; } = 0;
-
-        public double Nonconformance { get; set; } = 0;
-    }
-
     public class DipolesResult : AnalysisResult
     {
         public IEnumerable<DipoleResult> Dipoles { get; set; } = Enumerable.Empty<DipoleResult>();
@@ -35,8 +18,6 @@ namespace EEGCore.Processing.Model
     public class InverseEEGTask : AnalyzerBase<DipolesResult>
     {
         public ICARecord Input { get; init; } = new ICARecord();
-
-        public double Threshold { get; set; } = 0.7;
 
         public int AngleStep { get; set; } = 10;
 
@@ -51,7 +32,7 @@ namespace EEGCore.Processing.Model
                 // parallel calculation
                 var results = Enumerable.Range(0, Input.LeadsCount)
                                         .AsParallel()
-                                        .Select(componentIndex => FindDipole(componentIndex))
+                                        .Select(FindDipole)
                                         .ToList();
 
                 res.Dipoles = results.Where(dipole => dipole != default)
@@ -133,7 +114,7 @@ namespace EEGCore.Processing.Model
                                         {
                                             first = false;
                                             bestDipolesResult.Nonconformance = nonconformance;
-                                            bestDipolesResult.Probaprobability = Correlation.Pearson(modelWeights, knowWeights);
+                                            bestDipolesResult.Correlation = Correlation.Pearson(modelWeights, knowWeights);
                                             bestDipolesResult.Dipole = dipole.Clone();
                                             bestDipolesResult.ModelWeights = (double[])modelWeights.Clone();
                                         }

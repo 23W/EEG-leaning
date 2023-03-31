@@ -6,5 +6,13 @@
         {
             return self.Select((item, index) => (item, index));
         }
+
+        public static IEnumerable<int> Range(int from, int to, int step)
+        {
+            for (int i = from; i < to; i += step)
+            {
+                yield return i;
+            }
+        }
     }
 }

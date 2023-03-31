@@ -9,7 +9,7 @@ namespace EEGCore.Processing.Analysis
 {
     public class ComponentArtifactResult : AnalysisResult
     {
-        public IEnumerable<ComponentLead> ArticatComponents { get; set; } = Enumerable.Empty<ComponentLead>();
+        public IEnumerable<ComponentLead> ArtifactComponents { get; set; } = Enumerable.Empty<ComponentLead>();
     }
 
     public class ElectrodeArtifactDetector : AnalyzerBase<ComponentArtifactResult>
@@ -31,7 +31,7 @@ namespace EEGCore.Processing.Analysis
                 var res2 = AnalyzeReferenceElectrodeArtifact();
 
                 res.Succeed = res1.Succeed || res2.Succeed;
-                res.ArticatComponents = res1.ArticatComponents.Union(res2.ArticatComponents).ToList();
+                res.ArtifactComponents = res1.ArtifactComponents.Union(res2.ArtifactComponents).ToList();
             }
 
             return res;
@@ -79,17 +79,17 @@ namespace EEGCore.Processing.Analysis
                         var artifactInfo = new ArtifactInfo()
                         {
                             ArtifactType = ArtifactType.SingleElectrodeArtifact,
-                            Probaprobability = correlation 
+                            Probaprobability = correlation
                         };
 
-                        lead.AddArtifactInfo(artifactInfo, false);
+                        lead.AddArtifactInfo(artifactInfo);
                         artefacts.Add(lead);
                     }
                 }
             }
 
             res.Succeed = artefacts.Any();
-            res.ArticatComponents = artefacts.ToList();
+            res.ArtifactComponents = artefacts.ToList();
 
             return res;
         }
@@ -119,7 +119,7 @@ namespace EEGCore.Processing.Analysis
                     var modelWeights = weightSamples.Select(s => lineRegression.A + lineRegression.B * s.Item1)
                                                     .ToArray();
 
-                    var r2 = GoodnessOfFit.R(modelWeights, weights);
+                    //var r2 = GoodnessOfFit.R(modelWeights, weights);
                     var l2 = Distance.Euclidean(modelWeights, weights);
 
                     // l2 is good enough and slope B is less than 1 degree
@@ -129,17 +129,17 @@ namespace EEGCore.Processing.Analysis
                         var artifactInfo = new ArtifactInfo()
                         {
                             ArtifactType = ArtifactType.ReferenceElectrodeArtifact,
-                            Probaprobability = l2
+                            Probaprobability = 1 // TODO: implement!
                         };
 
-                        lead.AddArtifactInfo(artifactInfo, false);
+                        lead.AddArtifactInfo(artifactInfo);
                         artefacts.Add(lead);
                     }
                 }
             }
 
             res.Succeed = artefacts.Any();
-            res.ArticatComponents = artefacts.ToList();
+            res.ArtifactComponents = artefacts.ToList();
 
             return res;
         }

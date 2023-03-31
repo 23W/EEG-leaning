@@ -3,6 +3,23 @@ using System.Runtime.CompilerServices;
 
 namespace EEGCore.Processing.Model
 {
+    public class DipoleResult
+    {
+        public ComponentLead Lead { get; set; } = new ComponentLead();
+
+        public Dipole Dipole { get; set; } = new Dipole();
+
+        public Vector[] WeightLocations { get; set; } = Array.Empty<Vector>();
+
+        public double[] ComponentWeights { get; set; } = Array.Empty<double>();
+
+        public double[] ModelWeights { get; set; } = Array.Empty<double>();
+
+        public double Correlation { get; set; } = 0;
+
+        public double Nonconformance { get; set; } = 0;
+    }
+
     public class Dipole
     {
         public PolarCoordinate Location { get; set; } = new PolarCoordinate();
