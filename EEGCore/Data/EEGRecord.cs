@@ -1,5 +1,4 @@
 ﻿using EEGCore.Processing.Model;
-using static System.Net.WebRequestMethods;
 
 namespace EEGCore.Data
 {
@@ -60,22 +59,20 @@ namespace EEGCore.Data
         // O line (from left to right)
         O1,
         Oz,
-        O2
-    }
+        O2,
 
-    // Spherical EEG coordinates in degrees
-    public class EEGCoordinate
-    {
-        public double Alpha { get; set; } = 0;
-        public double Beta { get; set; } = 0;
-        public double R { get; set; } = 1;
+        // Synonyms
+        T7 /*= T3*/,
+        T8 /*= T4*/,
+        P7 /*= T5*/,
+        P8 /*= T6*/,
     }
 
     public class EEGSchemeLeadInfo
     {
         public LeadType LeadType { get; set; } = LeadType.Unknown;
 
-        public EEGCoordinate Coordinate { get; set; } = new EEGCoordinate();
+        public PolarCoordinate Coordinate { get; set; } = new PolarCoordinate();
     }
 
     public static class EEGScheme
@@ -226,6 +223,24 @@ namespace EEGCore.Data
             {
                 LeadCode.O2,
                 new EEGSchemeLeadInfo() { LeadType = LeadType.Occipital, Coordinate = ScalpSphere.GetLeadSpherical(LeadCode.O2) }
+            },
+
+            // Synonyms
+            {
+                LeadCode.T7,
+                new EEGSchemeLeadInfo() { LeadType = LeadType.Temporal, Coordinate = ScalpSphere.GetLeadSpherical(LeadCode.T7) }
+            },
+            {
+                LeadCode.T8,
+                new EEGSchemeLeadInfo() { LeadType = LeadType.Temporal, Coordinate = ScalpSphere.GetLeadSpherical(LeadCode.T8) }
+            },
+            {
+                LeadCode.P7,
+                new EEGSchemeLeadInfo() { LeadType = LeadType.Parietal, Coordinate = ScalpSphere.GetLeadSpherical(LeadCode.P7) }
+            },
+            {
+                LeadCode.P8,
+                new EEGSchemeLeadInfo() { LeadType = LeadType.Parietal, Coordinate = ScalpSphere.GetLeadSpherical(LeadCode.P8) }
             },
         };
     }

@@ -1,38 +1,54 @@
 ﻿using MathNet.Numerics.LinearAlgebra.Double;
+using System.Diagnostics;
 
 namespace EEGCore.Data
 {
-    public class Vector
+    public struct Vector
     {
-        public double X { get => Data[0]; set => Data[0] = value; }
-        public double Y { get => Data[1]; set => Data[1] = value; }
-        public double Z { get => Data[2]; set => Data[2] = value; }
-        public double[] Array { get => Data.ToArray(); set { if (value.Length < 3) { throw new ArgumentException(); } Data = new DenseVector(value); } }
+        public double X { get => m_x; set => m_x = value; }
+        public double Y { get => m_y; set => m_y = value; }
+        public double Z { get => m_z; set => m_z = value; }
 
-        internal DenseVector Data { get; set; } = new DenseVector(3);
+        public Vector()
+        {
+            m_x = 0;
+            m_y = 0;
+            m_z = 0;
+        }
+
+        public Vector(double x, double y, double z)
+        {
+            m_x = x;
+            m_y = y;
+            m_z = z;
+        }
 
         public Vector Add(Vector v)
         {
-            var res = new Vector() { Data = new DenseVector(Data.Add(v.Data).AsArray()) };
+            var res = new Vector(m_x + v.m_x, m_y + v.m_y, m_z + v.m_z);
             return res;
         }
 
         public Vector Sub(Vector v)
         {
-            var res = new Vector() { Data = new DenseVector(Data.Subtract(v.Data).AsArray()) };
+            var res = new Vector(m_x - v.m_x, m_y - v.m_y, m_z - v.m_z);
             return res;
         }
 
         public double Dot(Vector v)
         {
-            var res = Data.DotProduct(v.Data);
+            var res = m_x * v.m_x + m_y * v.m_y + m_z * v.m_z;
             return res;
         }
 
         public double Length()
         {
-            var res = Data.L2Norm();
+            var res = Math.Sqrt(m_x * m_x + m_y * m_y + m_z * m_z);
             return res;
         }
+
+        double m_x;
+        double m_y;
+        double m_z;
     }
 }

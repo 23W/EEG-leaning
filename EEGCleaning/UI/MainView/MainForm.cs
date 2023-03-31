@@ -260,8 +260,8 @@ namespace EEGCleaning
         {
             var res = new List<AnalyzerBase<ComponentArtifactResult>>()
             {
-                new ElectrodeArtifactDetector(),
-                new EyeArtifactDetector(),
+                new ElectrodeArtifactDetector() { Input = input },
+                new EyeArtifactDetector() { Input = input },
             };
             return res;
         }

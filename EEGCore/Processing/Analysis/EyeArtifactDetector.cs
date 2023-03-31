@@ -1,6 +1,7 @@
 ﻿using EEGCore.Data;
-using EEGCore.Utilities;
+using EEGCore.Processing.Model;
 using System.Diagnostics;
+using System.Text.Json;
 
 namespace EEGCore.Processing.Analysis
 {
@@ -20,9 +21,22 @@ namespace EEGCore.Processing.Analysis
                 return res;
             }
 
-            foreach(var (componentLead, index) in Input.Leads.WithIndex())
+            var inverseEEGTask = new InverseEEGTask() { Input = Input };
+            var dipolesResult = inverseEEGTask.Analyze();
+            if (dipolesResult.Succeed)
             {
-                var componentWeights = Input.GetMixingVector(index);
+#if DEBUG
+                var currentPath = Directory.GetCurrentDirectory();
+                foreach (var dipole in dipolesResult.Dipoles)
+                {
+                    var name = $"Dipole-{dipole.Lead!.Name}.json";
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                    dipole.Lead = null;
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+
+                    File.WriteAllText(Path.Combine(currentPath, name), JsonSerializer.Serialize(dipole));
+                }
+#endif
             }
 
             return res;

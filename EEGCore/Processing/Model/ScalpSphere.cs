@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace EEGCore.Processing.Model
 {
@@ -10,56 +11,55 @@ namespace EEGCore.Processing.Model
         public static Vector? GetLeadXYZ(string leadName)
         {
             var res = default(Vector?);
-            Dictionary.Value.TryGetValue(leadName.ToLower(), out res);
 
-            return res;
-        }
-
-        public static Vector GetLeadXYZ(LeadCode leadCode)
-        {
-            var res = GetLeadXYZ(leadCode.ToString())!;
-            return res;
-        }
-
-        public static EEGCoordinate? GetLeadSpherical(string leadName)
-        {
-            var res = default(EEGCoordinate?);
-
-            var xyz = GetLeadXYZ(leadName);
-            if (xyz != default)
+            if (Dictionary.Value.TryGetValue(leadName.ToLower(), out Vector coordinates))
             {
-                res = CalcSpherical(xyz);
+                res = coordinates;
             }
 
             return res;
         }
 
-        public static EEGCoordinate GetLeadSpherical(LeadCode leadCode)
+        public static Vector GetLeadXYZ(LeadCode leadCode) => GetLeadXYZ(leadCode.ToString())!.Value;
+
+        public static PolarCoordinate? GetLeadSpherical(string leadName)
         {
-            var res = CalcSpherical(GetLeadXYZ(leadCode));
+            var res = default(PolarCoordinate?);
+
+            var xyz = GetLeadXYZ(leadName);
+            if (xyz.HasValue)
+            {
+                res = CalcSpherical(xyz.Value);
+            }
+
             return res;
         }
 
-        public static Vector CalcXYZ(EEGCoordinate coordinate) => CalcXYZ(coordinate.Alpha, coordinate.Beta, coordinate.R);
+        public static PolarCoordinate GetLeadSpherical(LeadCode leadCode) => CalcSpherical(GetLeadXYZ(leadCode));
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector CalcXYZ(PolarCoordinate coordinate) => CalcXYZ(coordinate.Alpha, coordinate.Beta, coordinate.R);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector CalcXYZ(double alpha, double beta, double r)
         {
-            var beta1 = 90.0 - beta;
-            var res = new Vector()
-            {
-                X = r * Math.Sin(beta1.ToRadians()) * Math.Cos(alpha.ToRadians()),
-                Y = r * Math.Sin(beta1.ToRadians()) * Math.Sin(alpha.ToRadians()),
-                Z = r * Math.Cos(beta1.ToRadians())
-            };
+            var a = Math.SinCos(alpha.ToRadians());
+            var b = Math.SinCos((90 - beta).ToRadians());
+            var x = r * b.Sin * a.Cos;
+            var y = r * b.Sin * a.Sin;
+            var z = r * b.Cos;
 
+            var res = new Vector(x, y, z);
             return res;
         }
 
-        public static EEGCoordinate CalcSpherical(Vector coordinate) => CalcSpherical(coordinate.X, coordinate.Y, coordinate.Z);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static PolarCoordinate CalcSpherical(Vector coordinate) => CalcSpherical(coordinate.X, coordinate.Y, coordinate.Z);
 
-        public static EEGCoordinate CalcSpherical(double x, double y, double z)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static PolarCoordinate CalcSpherical(double x, double y, double z)
         {
-            var res = new EEGCoordinate()
+            var res = new PolarCoordinate()
             {
                 R = Math.Sqrt(x*x + y*y + z*z),
                 Alpha = Math.Atan2(y, x).ToDegrees(),
