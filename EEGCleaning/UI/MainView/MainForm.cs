@@ -172,7 +172,7 @@ namespace EEGCleaning
                     analyzer.Analyze();
                 }
 
-                foreach(var (lead, componentIndex) in ViewModel.IndependentComponents.Leads.Cast<ComponentLead>().WithIndex())
+                foreach (var (lead, componentIndex) in ViewModel.IndependentComponents.Leads.Cast<ComponentLead>().WithIndex())
                 {
                     if (lead.IsReferenceElectrodeArtifact ||
                         lead.IsSingleElectrodeArtifact)
@@ -200,7 +200,7 @@ namespace EEGCleaning
             var currentPath = Directory.GetCurrentDirectory();
             File.WriteAllText(Path.Combine(currentPath, "ICA.json"), ViewModel.IndependentComponents.ToJson());
 
-            foreach(var (lead, componentIndex) in ViewModel.IndependentComponents.Leads.Cast<ComponentLead>().WithIndex())
+            foreach (var (lead, componentIndex) in ViewModel.IndependentComponents.Leads.Cast<ComponentLead>().WithIndex())
             {
                 var componentWeights = ViewModel.IndependentComponents.GetMixingVector(componentIndex);
                 File.WriteAllText(Path.Combine(currentPath, $"ICA-{lead.Name}.json"), JsonSerializer.Serialize(componentWeights));
@@ -263,7 +263,7 @@ namespace EEGCleaning
             {
                 case ModelViewMode.Record:
                     m_icaButton.Menu = m_icaContextMenuStrip;
-                    m_icaButton.BackColor = SystemColors.Control;
+                    m_icaButton.BackColor = Color.Transparent;
                     m_icaComposeButton.Visible = false;
                     break;
                 case ModelViewMode.ICA:
