@@ -1,10 +1,5 @@
 ﻿using OxyPlot;
 using OxyPlot.Annotations;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EEGCleaning.UI.MainView.StateMachine
 {
@@ -123,7 +118,7 @@ namespace EEGCleaning.UI.MainView.StateMachine
 
             Range!.MinimumX = Math.Min(InitialTime, CurrentTime); ;
             Range!.MaximumX = Math.Max(InitialTime, CurrentTime);
-            Range!.Text = $"From: {xAxis!.FormatValue(InitialTime)}\nTo: {xAxis!.FormatValue(CurrentTime)}";
+            Range!.Text = $"From: {xAxis!.FormatValue(InitialTime)}\nTo: {xAxis!.FormatValue(CurrentTime)}\nΔ: {xAxis!.FormatValue(CurrentTime -InitialTime)}";
 
             plotModel.InvalidatePlot(false);
 

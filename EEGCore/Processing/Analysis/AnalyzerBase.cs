@@ -1,6 +1,4 @@
-﻿using EEGCore.Data;
-
-namespace EEGCore.Processing.Analysis
+﻿namespace EEGCore.Processing.Analysis
 {
     public class AnalysisResult
     {

@@ -1,6 +1,6 @@
-﻿using Accord.Diagnostics;
-using ArffTools;
+﻿using ArffTools;
 using EEGCore.Data;
+using System.Diagnostics;
 using System.Text;
 
 namespace EEGCore.Serialization

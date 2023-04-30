@@ -1,7 +1,4 @@
-﻿using MathNet.Numerics.LinearAlgebra.Double;
-using System.Diagnostics;
-
-namespace EEGCore.Data
+﻿namespace EEGCore.Data
 {
     public struct Vector
     {

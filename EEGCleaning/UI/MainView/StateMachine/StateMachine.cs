@@ -1,5 +1,5 @@
-﻿using Accord.Diagnostics;
-using EEGCleaning.UI.MainView.StateMachine.Events;
+﻿using EEGCleaning.UI.MainView.StateMachine.Events;
+using System.Diagnostics;
 
 namespace EEGCleaning.UI.MainView.StateMachine
 {

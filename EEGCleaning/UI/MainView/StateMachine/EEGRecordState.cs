@@ -1,6 +1,5 @@
 ﻿using EEGCleaning.Model;
 using EEGCore.Data;
-using System.Windows.Forms;
 
 namespace EEGCleaning.UI.MainView.StateMachine
 {
