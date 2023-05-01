@@ -53,6 +53,10 @@ namespace EEGCleaning
             m_bottomControlsLayoutPanel = new TableLayoutPanel();
             m_filterLowCutOffComboBox = new ComboBox();
             m_filterHighCutOffComboBox = new ComboBox();
+            m_autoButton = new MenuButton();
+            m_autoContextMenuStrip = new ContextMenuStrip(components);
+            autoCleanToolStripMenuItem = new ToolStripMenuItem();
+            autoRangesToolStripMenuItem = new ToolStripMenuItem();
             m_icaContextMenuStrip.SuspendLayout();
             m_loadContextMenuStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)m_splitContainer).BeginInit();
@@ -61,6 +65,7 @@ namespace EEGCleaning
             m_splitContainer.SuspendLayout();
             m_plorViewControlsLayoutPanel.SuspendLayout();
             m_bottomControlsLayoutPanel.SuspendLayout();
+            m_autoContextMenuStrip.SuspendLayout();
             SuspendLayout();
             // 
             // m_plotView
@@ -266,7 +271,7 @@ namespace EEGCleaning
             // m_bottomControlsLayoutPanel
             // 
             m_bottomControlsLayoutPanel.AutoSize = true;
-            m_bottomControlsLayoutPanel.ColumnCount = 8;
+            m_bottomControlsLayoutPanel.ColumnCount = 9;
             m_bottomControlsLayoutPanel.ColumnStyles.Add(new ColumnStyle());
             m_bottomControlsLayoutPanel.ColumnStyles.Add(new ColumnStyle());
             m_bottomControlsLayoutPanel.ColumnStyles.Add(new ColumnStyle());
@@ -275,14 +280,16 @@ namespace EEGCleaning
             m_bottomControlsLayoutPanel.ColumnStyles.Add(new ColumnStyle());
             m_bottomControlsLayoutPanel.ColumnStyles.Add(new ColumnStyle());
             m_bottomControlsLayoutPanel.ColumnStyles.Add(new ColumnStyle());
-            m_bottomControlsLayoutPanel.Controls.Add(m_saveButton, 7, 0);
-            m_bottomControlsLayoutPanel.Controls.Add(m_loadButton, 6, 0);
-            m_bottomControlsLayoutPanel.Controls.Add(m_icaComposeButton, 5, 0);
-            m_bottomControlsLayoutPanel.Controls.Add(m_icaButton, 4, 0);
+            m_bottomControlsLayoutPanel.ColumnStyles.Add(new ColumnStyle());
+            m_bottomControlsLayoutPanel.Controls.Add(m_saveButton, 8, 0);
+            m_bottomControlsLayoutPanel.Controls.Add(m_loadButton, 7, 0);
+            m_bottomControlsLayoutPanel.Controls.Add(m_icaComposeButton, 6, 0);
             m_bottomControlsLayoutPanel.Controls.Add(m_speedComboBox, 0, 0);
             m_bottomControlsLayoutPanel.Controls.Add(m_amplComboBox, 1, 0);
             m_bottomControlsLayoutPanel.Controls.Add(m_filterLowCutOffComboBox, 2, 0);
             m_bottomControlsLayoutPanel.Controls.Add(m_filterHighCutOffComboBox, 3, 0);
+            m_bottomControlsLayoutPanel.Controls.Add(m_icaButton, 5, 0);
+            m_bottomControlsLayoutPanel.Controls.Add(m_autoButton, 4, 0);
             m_bottomControlsLayoutPanel.Dock = DockStyle.Bottom;
             m_bottomControlsLayoutPanel.Location = new Point(0, 611);
             m_bottomControlsLayoutPanel.Name = "m_bottomControlsLayoutPanel";
@@ -311,6 +318,40 @@ namespace EEGCleaning
             m_filterHighCutOffComboBox.TabIndex = 8;
             m_filterHighCutOffComboBox.SelectedIndexChanged += OnFilterHighCutOffSelected;
             // 
+            // m_autoButton
+            // 
+            m_autoButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            m_autoButton.AutoSize = true;
+            m_autoButton.BackColor = Color.Transparent;
+            m_autoButton.Location = new Point(855, 3);
+            m_autoButton.Margin = new Padding(5, 3, 5, 3);
+            m_autoButton.Menu = m_autoContextMenuStrip;
+            m_autoButton.Name = "m_autoButton";
+            m_autoButton.Size = new Size(68, 30);
+            m_autoButton.TabIndex = 3;
+            m_autoButton.Text = "Auto";
+            m_autoButton.UseVisualStyleBackColor = false;
+            // 
+            // m_autoContextMenuStrip
+            // 
+            m_autoContextMenuStrip.Items.AddRange(new ToolStripItem[] { autoCleanToolStripMenuItem, autoRangesToolStripMenuItem });
+            m_autoContextMenuStrip.Name = "m_autoContextMenuStrip";
+            m_autoContextMenuStrip.Size = new Size(142, 48);
+            // 
+            // autoCleanToolStripMenuItem
+            // 
+            autoCleanToolStripMenuItem.Name = "autoCleanToolStripMenuItem";
+            autoCleanToolStripMenuItem.Size = new Size(141, 22);
+            autoCleanToolStripMenuItem.Text = "Auto Clean";
+            autoCleanToolStripMenuItem.Click += OnAutoClean;
+            // 
+            // autoRangesToolStripMenuItem
+            // 
+            autoRangesToolStripMenuItem.Name = "autoRangesToolStripMenuItem";
+            autoRangesToolStripMenuItem.Size = new Size(141, 22);
+            autoRangesToolStripMenuItem.Text = "Auto Ranges";
+            autoRangesToolStripMenuItem.Click += OnAutoRanges;
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -332,6 +373,7 @@ namespace EEGCleaning
             m_plorViewControlsLayoutPanel.ResumeLayout(false);
             m_bottomControlsLayoutPanel.ResumeLayout(false);
             m_bottomControlsLayoutPanel.PerformLayout();
+            m_autoContextMenuStrip.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
         }
@@ -341,7 +383,7 @@ namespace EEGCleaning
         private OxyPlot.WindowsForms.PlotView m_plotView;
         private MenuButton m_icaButton;
         private OpenFileDialog m_openFileDialog;
-        private UI.Controls.MenuButton m_loadButton;
+        private MenuButton m_loadButton;
         private ContextMenuStrip m_loadContextMenuStrip;
         private ToolStripMenuItem loadEEGToolStripMenuItem;
         private ToolStripMenuItem loadTestDataToolStripMenuItem;
@@ -360,5 +402,9 @@ namespace EEGCleaning
         private TableLayoutPanel m_bottomControlsLayoutPanel;
         private ComboBox m_filterLowCutOffComboBox;
         private ComboBox m_filterHighCutOffComboBox;
+        private MenuButton m_autoButton;
+        private ContextMenuStrip m_autoContextMenuStrip;
+        private ToolStripMenuItem autoCleanToolStripMenuItem;
+        private ToolStripMenuItem autoRangesToolStripMenuItem;
     }
 }

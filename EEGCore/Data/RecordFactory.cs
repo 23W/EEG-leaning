@@ -104,7 +104,7 @@ namespace EEGCore.Data
 
             if (options?.SortLeads ?? false)
             {
-                res.Leads.Sort((l1, l2) => DataUtilities.ComparetTo(l1, l2));
+                res.Leads.Sort(DataUtilities.ComparetTo);
             }
 
             return res;

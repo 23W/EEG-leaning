@@ -972,6 +972,24 @@ namespace EEGCleaning
             ScrollPlot(m_plotViewHScrollBar.Value);
         }
 
+        void OnAutoRanges(object sender, EventArgs e)
+        {
+            var rangeDetector = new ArtefactCandidateRangeDetector() { Input = ViewModel.VisibleRecord };
+            var result = rangeDetector.Analyze();
+            if (result.Succeed)
+            {
+                ViewModel.VisibleRecord.Ranges.Clear();
+                ViewModel.VisibleRecord.Ranges.AddRange(result.Ranges);
+
+                UpdatePlot();
+            }
+        }
+
+        void OnAutoClean(object sender, EventArgs e)
+        {
+
+        }
+
         void OnLoadTestData(object sender, EventArgs e)
         {
             m_openFileDialog.InitialDirectory = Directory.GetCurrentDirectory();
