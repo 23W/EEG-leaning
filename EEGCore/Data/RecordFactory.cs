@@ -89,26 +89,17 @@ namespace EEGCore.Data
             if (cutOffLow.HasValue && cutOffHigh.HasValue)
             {
                 var filter = FilterFactory.BuildBandPassFilter(res.SampleRate, cutOffLow.Value, cutOffHigh.Value);
-                foreach (var lead in res.Leads)
-                {
-                    filter.ProcessInplace(lead);
-                }
+                filter.ProcessInplace(res.Leads);
             }
             else if (cutOffLow.HasValue)
             {
                 var filter = FilterFactory.BuildHighPassFilter(res.SampleRate, cutOffLow.Value);
-                foreach (var lead in res.Leads)
-                {
-                    filter.ProcessInplace(lead);
-                }
+                filter.ProcessInplace(res.Leads);
             }
             else if (cutOffHigh.HasValue)
             {
                 var filter = FilterFactory.BuildLowPassFilter(res.SampleRate, cutOffHigh.Value);
-                foreach (var lead in res.Leads)
-                {
-                    filter.ProcessInplace(lead);
-                }
+                filter.ProcessInplace(res.Leads);
             }
 
             if (options?.SortLeads ?? false)

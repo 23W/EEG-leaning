@@ -100,28 +100,19 @@ namespace EEGCleaning.Model
                         m_cutOffHighFreq.HasValue)
                     {
                         var filter = FilterFactory.BuildBandPassFilter(m_visibleRecord.SampleRate, m_cutOffLowFreq.Value, m_cutOffHighFreq.Value);
-                        foreach (var lead in m_visibleRecord.Leads)
-                        {
-                            filter.ProcessInplace(lead);
-                        }
+                        filter.ProcessInplace(m_visibleRecord.Leads);
                     }
                     else if (m_cutOffLowFreq.HasValue)
                     {
                         var filter = FilterFactory.BuildHighPassFilter(m_visibleRecord.SampleRate, m_cutOffLowFreq.Value);
-                        foreach (var lead in m_visibleRecord.Leads)
-                        {
-                            filter.ProcessInplace(lead);
-                        }
+                        filter.ProcessInplace(m_visibleRecord.Leads);
                     }
                     else
                     {
                         Debug.Assert(m_cutOffHighFreq.HasValue);
 
                         var filter = FilterFactory.BuildLowPassFilter(m_visibleRecord.SampleRate, m_cutOffHighFreq.Value);
-                        foreach (var lead in m_visibleRecord.Leads)
-                        {
-                            filter.ProcessInplace(lead);
-                        }
+                        filter.ProcessInplace(m_visibleRecord.Leads);
                     }
                 }
             }
