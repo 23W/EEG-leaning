@@ -1,6 +1,4 @@
-﻿using MathNet.Numerics.RootFinding;
-
-namespace EEGCore.StateMachine
+﻿namespace EEGCore.StateMachine
 {
     public abstract class StateEvent
     {

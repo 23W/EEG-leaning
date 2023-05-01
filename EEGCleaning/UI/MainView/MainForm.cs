@@ -211,10 +211,7 @@ namespace EEGCleaning
                     }
                     else if (lead.IsEyeArtifact)
                     {
-                        // TODO: It's better to use HiPass filter suppressing, but currently filter works with signal shifting.
-                        //       Revisit this place after filter updating.
-                        //lead.Suppress = SuppressType.HiPass20;
-                        lead.Suppress = SuppressType.ZeroLead;
+                        lead.Suppress = SuppressType.HiPass10;
                     }
                     else
                     {

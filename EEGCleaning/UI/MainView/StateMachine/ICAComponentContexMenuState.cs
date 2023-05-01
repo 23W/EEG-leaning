@@ -74,6 +74,8 @@ namespace EEGCleaning.UI.MainView.StateMachine
             MenuHiPass30Suppress.Checked = ComponentLead.Suppress == SuppressType.HiPass30;
 
             MenuEyeArtifact.Click += OnMenuEyeArtifactItemClicked;
+            MenuReferenceElectrodeArtifact.Click += OnMenuReferenceElectrodeArtifactItemClicked;
+            MenuSingleElectrodeArtifact.Click += OnMenuSingleElectrodeArtifactItemClicked;
             MenuNotSuppress.Click += OnMenuNoneSuppressItemClicked;
             MenuZeroLeadSuppress.Click += OnMenuZeroLeadSuppressItemClicked;
             MenuHiPass10Suppress.Click += OnMenuHiPass10SuppressItemClicked;
@@ -89,6 +91,8 @@ namespace EEGCleaning.UI.MainView.StateMachine
         protected override string Deactivate()
         {
             MenuEyeArtifact.Click -= OnMenuEyeArtifactItemClicked;
+            MenuReferenceElectrodeArtifact.Click -= OnMenuReferenceElectrodeArtifactItemClicked;
+            MenuSingleElectrodeArtifact.Click -= OnMenuSingleElectrodeArtifactItemClicked;
             MenuNotSuppress.Click -= OnMenuNoneSuppressItemClicked;
             MenuZeroLeadSuppress.Click -= OnMenuZeroLeadSuppressItemClicked;
             MenuHiPass10Suppress.Click -= OnMenuHiPass10SuppressItemClicked;
@@ -112,14 +116,50 @@ namespace EEGCleaning.UI.MainView.StateMachine
             if (ComponentLead.IsEyeArtifact)
             {
                 ComponentLead.RemoveArtifactInfo(ArtifactType.EyeArtifact);
+
+                OnMenuNoneSuppressItemClicked(sender, e);
             }
             else
             {
                 ComponentLead.AddArtifactInfo(ArtifactType.EyeArtifact);
-            }
 
-            StateMachine.MainView.UpdatePlot();
-            StateMachine.SwitchState(PrevieousStateName);
+                StateMachine.MainView.UpdatePlot();
+                StateMachine.SwitchState(PrevieousStateName);
+            }
+        }
+
+        void OnMenuReferenceElectrodeArtifactItemClicked(object? sender, EventArgs e)
+        {
+            if (ComponentLead.IsReferenceElectrodeArtifact)
+            {
+                ComponentLead.RemoveArtifactInfo(ArtifactType.ReferenceElectrodeArtifact);
+
+                OnMenuNoneSuppressItemClicked(sender, e);
+            }
+            else
+            {
+                ComponentLead.AddArtifactInfo(ArtifactType.ReferenceElectrodeArtifact);
+
+                StateMachine.MainView.UpdatePlot();
+                StateMachine.SwitchState(PrevieousStateName);
+            }
+        }
+
+        void OnMenuSingleElectrodeArtifactItemClicked(object? sender, EventArgs e)
+        {
+            if (ComponentLead.IsSingleElectrodeArtifact)
+            {
+                ComponentLead.RemoveArtifactInfo(ArtifactType.SingleElectrodeArtifact);
+
+                OnMenuNoneSuppressItemClicked(sender, e);
+            }
+            else
+            {
+                ComponentLead.AddArtifactInfo(ArtifactType.SingleElectrodeArtifact);
+
+                StateMachine.MainView.UpdatePlot();
+                StateMachine.SwitchState(PrevieousStateName);
+            }
         }
 
         void OnMenuNoneSuppressItemClicked(object? sender, EventArgs e)
