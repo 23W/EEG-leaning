@@ -46,11 +46,13 @@ namespace EEGCleaning
             m_splitContainer = new SplitContainer();
             m_plorViewControlsLayoutPanel = new TableLayoutPanel();
             m_plotViewHScrollBar = new HScrollBar();
+            m_plotWeightsView = new OxyPlot.WindowsForms.PlotView();
             m_amplComboBox = new ComboBox();
             m_speedComboBox = new ComboBox();
-            m_plotWeightsView = new OxyPlot.WindowsForms.PlotView();
             m_icaComposeButton = new Button();
             m_bottomControlsLayoutPanel = new TableLayoutPanel();
+            m_filterLowCutOffComboBox = new ComboBox();
+            m_filterHighCutOffComboBox = new ComboBox();
             m_icaContextMenuStrip.SuspendLayout();
             m_loadContextMenuStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)m_splitContainer).BeginInit();
@@ -69,7 +71,7 @@ namespace EEGCleaning
             m_plotView.Margin = new Padding(3, 2, 3, 2);
             m_plotView.Name = "m_plotView";
             m_plotView.PanCursor = Cursors.Hand;
-            m_plotView.Size = new Size(727, 405);
+            m_plotView.Size = new Size(963, 581);
             m_plotView.TabIndex = 0;
             m_plotView.ZoomHorizontalCursor = Cursors.SizeWE;
             m_plotView.ZoomRectangleCursor = Cursors.SizeNWSE;
@@ -80,7 +82,7 @@ namespace EEGCleaning
             // 
             m_icaButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             m_icaButton.BackColor = Color.Transparent;
-            m_icaButton.Location = new Point(642, 3);
+            m_icaButton.Location = new Point(933, 3);
             m_icaButton.Margin = new Padding(5, 3, 5, 3);
             m_icaButton.Menu = m_icaContextMenuStrip;
             m_icaButton.Name = "m_icaButton";
@@ -116,7 +118,7 @@ namespace EEGCleaning
             // 
             m_loadButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             m_loadButton.BackColor = Color.Transparent;
-            m_loadButton.Location = new Point(791, 3);
+            m_loadButton.Location = new Point(1082, 3);
             m_loadButton.Margin = new Padding(5, 3, 5, 3);
             m_loadButton.Menu = m_loadContextMenuStrip;
             m_loadButton.Name = "m_loadButton";
@@ -156,7 +158,7 @@ namespace EEGCleaning
             m_saveButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             m_saveButton.BackColor = Color.RoyalBlue;
             m_saveButton.ForeColor = Color.White;
-            m_saveButton.Location = new Point(883, 3);
+            m_saveButton.Location = new Point(1174, 3);
             m_saveButton.Margin = new Padding(5, 3, 5, 3);
             m_saveButton.Name = "m_saveButton";
             m_saveButton.Size = new Size(82, 30);
@@ -181,8 +183,8 @@ namespace EEGCleaning
             // 
             m_splitContainer.Panel2.Controls.Add(m_plotWeightsView);
             m_splitContainer.Panel2MinSize = 100;
-            m_splitContainer.Size = new Size(970, 490);
-            m_splitContainer.SplitterDistance = 746;
+            m_splitContainer.Size = new Size(1261, 611);
+            m_splitContainer.SplitterDistance = 969;
             m_splitContainer.TabIndex = 0;
             // 
             // m_plorViewControlsLayoutPanel
@@ -200,26 +202,40 @@ namespace EEGCleaning
             m_plorViewControlsLayoutPanel.RowCount = 2;
             m_plorViewControlsLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             m_plorViewControlsLayoutPanel.RowStyles.Add(new RowStyle());
-            m_plorViewControlsLayoutPanel.Size = new Size(746, 490);
+            m_plorViewControlsLayoutPanel.Size = new Size(969, 611);
             m_plorViewControlsLayoutPanel.TabIndex = 0;
             // 
             // m_plotViewHScrollBar
             // 
             m_plotViewHScrollBar.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            m_plotViewHScrollBar.Location = new Point(0, 409);
+            m_plotViewHScrollBar.Location = new Point(0, 585);
             m_plotViewHScrollBar.Name = "m_plotViewHScrollBar";
-            m_plotViewHScrollBar.Size = new Size(733, 26);
+            m_plotViewHScrollBar.Size = new Size(969, 26);
             m_plotViewHScrollBar.TabIndex = 3;
             m_plotViewHScrollBar.Scroll += OnHScroll;
+            // 
+            // m_plotWeightsView
+            // 
+            m_plotWeightsView.BackColor = SystemColors.Window;
+            m_plotWeightsView.Dock = DockStyle.Fill;
+            m_plotWeightsView.Location = new Point(0, 0);
+            m_plotWeightsView.Margin = new Padding(3, 2, 3, 2);
+            m_plotWeightsView.Name = "m_plotWeightsView";
+            m_plotWeightsView.PanCursor = Cursors.Hand;
+            m_plotWeightsView.Size = new Size(288, 611);
+            m_plotWeightsView.TabIndex = 1;
+            m_plotWeightsView.ZoomHorizontalCursor = Cursors.SizeWE;
+            m_plotWeightsView.ZoomRectangleCursor = Cursors.SizeNWSE;
+            m_plotWeightsView.ZoomVerticalCursor = Cursors.SizeNS;
             // 
             // m_amplComboBox
             // 
             m_amplComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
             m_amplComboBox.FormattingEnabled = true;
-            m_amplComboBox.Location = new Point(142, 2);
+            m_amplComboBox.Location = new Point(117, 2);
             m_amplComboBox.Margin = new Padding(3, 2, 3, 2);
             m_amplComboBox.Name = "m_amplComboBox";
-            m_amplComboBox.Size = new Size(133, 23);
+            m_amplComboBox.Size = new Size(108, 23);
             m_amplComboBox.TabIndex = 2;
             m_amplComboBox.SelectedIndexChanged += OnAmplSelected;
             // 
@@ -230,30 +246,16 @@ namespace EEGCleaning
             m_speedComboBox.Location = new Point(3, 2);
             m_speedComboBox.Margin = new Padding(3, 2, 3, 2);
             m_speedComboBox.Name = "m_speedComboBox";
-            m_speedComboBox.Size = new Size(133, 23);
+            m_speedComboBox.Size = new Size(108, 23);
             m_speedComboBox.TabIndex = 1;
             m_speedComboBox.SelectedIndexChanged += OnSpeedSelected;
-            // 
-            // m_plotWeightsView
-            // 
-            m_plotWeightsView.BackColor = SystemColors.Window;
-            m_plotWeightsView.Dock = DockStyle.Fill;
-            m_plotWeightsView.Location = new Point(0, 0);
-            m_plotWeightsView.Margin = new Padding(3, 2, 3, 2);
-            m_plotWeightsView.Name = "m_plotWeightsView";
-            m_plotWeightsView.PanCursor = Cursors.Hand;
-            m_plotWeightsView.Size = new Size(220, 490);
-            m_plotWeightsView.TabIndex = 1;
-            m_plotWeightsView.ZoomHorizontalCursor = Cursors.SizeWE;
-            m_plotWeightsView.ZoomRectangleCursor = Cursors.SizeNWSE;
-            m_plotWeightsView.ZoomVerticalCursor = Cursors.SizeNS;
             // 
             // m_icaComposeButton
             // 
             m_icaComposeButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             m_icaComposeButton.AutoSize = true;
             m_icaComposeButton.BackColor = Color.Transparent;
-            m_icaComposeButton.Location = new Point(713, 3);
+            m_icaComposeButton.Location = new Point(1004, 3);
             m_icaComposeButton.Margin = new Padding(5, 3, 5, 3);
             m_icaComposeButton.Name = "m_icaComposeButton";
             m_icaComposeButton.Size = new Size(68, 30);
@@ -264,36 +266,60 @@ namespace EEGCleaning
             // m_bottomControlsLayoutPanel
             // 
             m_bottomControlsLayoutPanel.AutoSize = true;
-            m_bottomControlsLayoutPanel.ColumnCount = 6;
+            m_bottomControlsLayoutPanel.ColumnCount = 8;
+            m_bottomControlsLayoutPanel.ColumnStyles.Add(new ColumnStyle());
+            m_bottomControlsLayoutPanel.ColumnStyles.Add(new ColumnStyle());
             m_bottomControlsLayoutPanel.ColumnStyles.Add(new ColumnStyle());
             m_bottomControlsLayoutPanel.ColumnStyles.Add(new ColumnStyle());
             m_bottomControlsLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
             m_bottomControlsLayoutPanel.ColumnStyles.Add(new ColumnStyle());
             m_bottomControlsLayoutPanel.ColumnStyles.Add(new ColumnStyle());
             m_bottomControlsLayoutPanel.ColumnStyles.Add(new ColumnStyle());
-            m_bottomControlsLayoutPanel.Controls.Add(m_saveButton, 5, 0);
-            m_bottomControlsLayoutPanel.Controls.Add(m_loadButton, 4, 0);
-            m_bottomControlsLayoutPanel.Controls.Add(m_icaComposeButton, 3, 0);
-            m_bottomControlsLayoutPanel.Controls.Add(m_icaButton, 2, 0);
+            m_bottomControlsLayoutPanel.Controls.Add(m_saveButton, 7, 0);
+            m_bottomControlsLayoutPanel.Controls.Add(m_loadButton, 6, 0);
+            m_bottomControlsLayoutPanel.Controls.Add(m_icaComposeButton, 5, 0);
+            m_bottomControlsLayoutPanel.Controls.Add(m_icaButton, 4, 0);
             m_bottomControlsLayoutPanel.Controls.Add(m_speedComboBox, 0, 0);
             m_bottomControlsLayoutPanel.Controls.Add(m_amplComboBox, 1, 0);
+            m_bottomControlsLayoutPanel.Controls.Add(m_filterLowCutOffComboBox, 2, 0);
+            m_bottomControlsLayoutPanel.Controls.Add(m_filterHighCutOffComboBox, 3, 0);
             m_bottomControlsLayoutPanel.Dock = DockStyle.Bottom;
-            m_bottomControlsLayoutPanel.Location = new Point(0, 454);
+            m_bottomControlsLayoutPanel.Location = new Point(0, 611);
             m_bottomControlsLayoutPanel.Name = "m_bottomControlsLayoutPanel";
             m_bottomControlsLayoutPanel.RowCount = 1;
             m_bottomControlsLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            m_bottomControlsLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
-            m_bottomControlsLayoutPanel.Size = new Size(970, 36);
+            m_bottomControlsLayoutPanel.Size = new Size(1261, 36);
             m_bottomControlsLayoutPanel.TabIndex = 1;
+            // 
+            // m_filterLowCutOffComboBox
+            // 
+            m_filterLowCutOffComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
+            m_filterLowCutOffComboBox.FormattingEnabled = true;
+            m_filterLowCutOffComboBox.Location = new Point(231, 3);
+            m_filterLowCutOffComboBox.Name = "m_filterLowCutOffComboBox";
+            m_filterLowCutOffComboBox.Size = new Size(108, 23);
+            m_filterLowCutOffComboBox.TabIndex = 7;
+            m_filterLowCutOffComboBox.SelectedIndexChanged += OnFilterLowCutOffSelected;
+            // 
+            // m_filterHighCutOffComboBox
+            // 
+            m_filterHighCutOffComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
+            m_filterHighCutOffComboBox.FormattingEnabled = true;
+            m_filterHighCutOffComboBox.Location = new Point(345, 3);
+            m_filterHighCutOffComboBox.Name = "m_filterHighCutOffComboBox";
+            m_filterHighCutOffComboBox.Size = new Size(108, 23);
+            m_filterHighCutOffComboBox.TabIndex = 8;
+            m_filterHighCutOffComboBox.SelectedIndexChanged += OnFilterHighCutOffSelected;
             // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(970, 490);
+            ClientSize = new Size(1261, 647);
             Controls.Add(m_splitContainer);
             Controls.Add(m_bottomControlsLayoutPanel);
             Margin = new Padding(3, 2, 3, 2);
+            MinimumSize = new Size(1024, 600);
             Name = "MainForm";
             Text = "EEG Cleaner";
             Load += OnLoad;
@@ -332,5 +358,7 @@ namespace EEGCleaning
         private ComboBox m_amplComboBox;
         private ComboBox m_speedComboBox;
         private TableLayoutPanel m_bottomControlsLayoutPanel;
+        private ComboBox m_filterLowCutOffComboBox;
+        private ComboBox m_filterHighCutOffComboBox;
     }
 }

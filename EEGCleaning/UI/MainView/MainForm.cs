@@ -41,6 +41,7 @@ namespace EEGCleaning
 
         bool NeedPlotRescale { get; set; } = false;
         bool InPlotRescaleExecution { get; set; } = false;
+        bool InFilterChangeExecution { get; set; } = false;
 
         SpeedItem[] SpeedItems => new[]
         {
@@ -64,6 +65,32 @@ namespace EEGCleaning
             new AmplItem() { Value = 1000 },
             new AmplItem() { Value = 1500 },
             new AmplItem() { Value = 2000 },
+        };
+
+        FrequencyItem[] FrequencyItems => new[]
+        {
+            new FrequencyItem() { Value = -1 },
+            new FrequencyItem() { Value = 0.1 },
+            new FrequencyItem() { Value = 0.2 },
+            new FrequencyItem() { Value = 0.3 },
+            new FrequencyItem() { Value = 0.5 },
+            new FrequencyItem() { Value = 1 },
+            new FrequencyItem() { Value = 2 },
+            new FrequencyItem() { Value = 3 },
+            new FrequencyItem() { Value = 4 },
+            new FrequencyItem() { Value = 5 },
+            new FrequencyItem() { Value = 6 },
+            new FrequencyItem() { Value = 7 },
+            new FrequencyItem() { Value = 8 },
+            new FrequencyItem() { Value = 9 },
+            new FrequencyItem() { Value = 10 },
+            new FrequencyItem() { Value = 13 },
+            new FrequencyItem() { Value = 15 },
+            new FrequencyItem() { Value = 20 },
+            new FrequencyItem() { Value = 25 },
+            new FrequencyItem() { Value = 35 },
+            new FrequencyItem() { Value = 50 },
+            new FrequencyItem() { Value = 100 },
         };
 
         #endregion
@@ -110,6 +137,8 @@ namespace EEGCleaning
 
             m_speedComboBox.Items.AddRange(SpeedItems);
             m_amplComboBox.Items.AddRange(AmplItems);
+            m_filterLowCutOffComboBox.Items.AddRange(FrequencyItems);
+            m_filterHighCutOffComboBox.Items.AddRange(FrequencyItems);
 
             StateMachine = new StateMachine(this);
         }
@@ -138,7 +167,7 @@ namespace EEGCleaning
             else if ((sender is PlotModel) ||
                      (sender is PlotController))
             {
-                res = ViewModel.ProcessedRecord;
+                res = ViewModel.VisibleRecord;
             }
             else if (sender is PlotElement element)
             {
@@ -150,11 +179,11 @@ namespace EEGCleaning
 
         internal bool IsPanDistance(double time1, double time2)
         {
-            bool res = Math.Abs(time2 - time1) * ViewModel.ProcessedRecord.SampleRate > 10;
+            bool res = Math.Abs(time2 - time1) * ViewModel.VisibleRecord.SampleRate > 10;
             return res;
         }
 
-        internal void RunICADecompose(RecordRange? range = default, bool normalizePower = false, bool analyzeComponents = true)
+        internal void RunICADecompose(RecordRange? range = default, bool useVisibleRecord = true, bool normalizePower = false, bool analyzeComponents = true)
         {
             var ica = new FastICA()
             {
@@ -162,8 +191,9 @@ namespace EEGCleaning
                 Tolerance = 1E-06,
                 NormalizePower = normalizePower,
             };
+            var icaMixture = useVisibleRecord ? ViewModel.VisibleRecord : ViewModel.ProcessedRecord;
 
-            ViewModel.IndependentComponents = ica.Decompose(ViewModel.ProcessedRecord, range);
+            ViewModel.IndependentComponents = ica.Decompose(icaMixture, range);
 
             if (analyzeComponents)
             {
@@ -209,11 +239,12 @@ namespace EEGCleaning
 
         }
 
-        internal void RunICACompose()
+        internal void RunICACompose(bool useVisibleRecord = true)
         {
             var ica = new FastICA();
+            var icaComponents = useVisibleRecord ? (ICARecord)ViewModel.VisibleRecord : ViewModel.IndependentComponents;
 
-            ViewModel.ProcessedRecord = ica.Compose(ViewModel.IndependentComponents, SuppressComponents.MatrixAndComponents);
+            ViewModel.ProcessedRecord = ica.Compose(icaComponents, SuppressComponents.MatrixAndComponents);
         }
 
         internal void UpdatePlot(ModelViewMode viewMode)
@@ -236,12 +267,12 @@ namespace EEGCleaning
             switch (ViewModel.ViewMode)
             {
                 case ModelViewMode.Record:
-                    PopulatedPlotModel(plotModel, ViewModel.ProcessedRecord);
+                    PopulatedPlotModel(plotModel, ViewModel.VisibleRecord);
                     break;
 
                 case ModelViewMode.ICA:
-                    PopulatedPlotModel(plotModel, ViewModel.IndependentComponents);
-                    PopulatedPlotWeightsModel(plotWeightsModel, ViewModel.IndependentComponents);
+                    PopulatedPlotModel(plotModel, ViewModel.VisibleRecord);
+                    PopulatedPlotWeightsModel(plotWeightsModel, (ICARecord)ViewModel.VisibleRecord);
                     break;
             }
 
@@ -277,6 +308,7 @@ namespace EEGCleaning
 
             UpdateSpeedBar();
             UpdateAmplBar();
+            UpdateFilterBars();
             UpdateHScrollBar();
         }
 
@@ -302,16 +334,7 @@ namespace EEGCleaning
         void SaveRecord(string path)
         {
             var factory = new RecordFactory();
-
-            switch (ViewModel.ViewMode)
-            {
-                case ModelViewMode.Record:
-                    factory.ToFile(path, ViewModel.ProcessedRecord);
-                    break;
-                case ModelViewMode.ICA:
-                    factory.ToFile(path, ViewModel.IndependentComponents);
-                    break;
-            }
+            factory.ToFile(path, ViewModel.VisibleRecord);
         }
 
         void PopulatedPlotModel(PlotModel plotModel, Record record)
@@ -652,6 +675,25 @@ namespace EEGCleaning
             m_amplComboBox.SelectedItem = item;
         }
 
+        void UpdateFilterBars()
+        {
+            // low cut off
+            {
+                var item = m_filterLowCutOffComboBox.Items
+                                         .Cast<FrequencyItem>()
+                                         .FirstOrDefault(a => a.Value == ViewModel.CutOffLowFrequency.Value);
+                m_filterLowCutOffComboBox.SelectedItem = item;
+            }
+
+            // high cut off
+            {
+                var item = m_filterHighCutOffComboBox.Items
+                                         .Cast<FrequencyItem>()
+                                         .FirstOrDefault(a => a.Value == ViewModel.CutOffHighFrequency.Value);
+                m_filterHighCutOffComboBox.SelectedItem = item;
+            }
+        }
+
         void ScrollPlot(int samplePosition)
         {
             Debug.Assert(samplePosition >= 0);
@@ -766,6 +808,42 @@ namespace EEGCleaning
             }
         }
 
+        void FilterLowCutOff(FrequencyItem cutOff)
+        {
+            if (cutOff.Value != ViewModel.CutOffLowFrequency.Value)
+            {
+                if (!cutOff.HasValue ||
+                    !ViewModel.CutOffHighFrequency.HasValue ||
+                    (cutOff.Value < ViewModel.CutOffHighFrequency.Value))
+                {
+                    ViewModel.CutOffLowFrequency = cutOff;
+                    UpdatePlot();
+                }
+                else
+                {
+                    UpdateFilterBars();
+                }
+            }
+        }
+
+        void FilterHighCutOff(FrequencyItem cutOff)
+        {
+            if (cutOff.Value != ViewModel.CutOffHighFrequency.Value)
+            {
+                if (!cutOff.HasValue ||
+                    !ViewModel.CutOffLowFrequency.HasValue ||
+                    (cutOff.Value > ViewModel.CutOffLowFrequency.Value))
+                {
+                    ViewModel.CutOffHighFrequency = cutOff;
+                    UpdatePlot();
+                }
+                else
+                {
+                    UpdateFilterBars();
+                }
+            }
+        }
+
         #region Input Events
 
         void OnPlotMouseDown(object? sender, OxyMouseDownEventArgs e)
@@ -873,6 +951,22 @@ namespace EEGCleaning
             if (m_amplComboBox.SelectedItem is AmplItem selectedItem)
             {
                 AmplifirePlot(selectedItem);
+            }
+        }
+
+        void OnFilterLowCutOffSelected(object sender, EventArgs e)
+        {
+            if (m_filterLowCutOffComboBox.SelectedItem is FrequencyItem selectedItem)
+            {
+                FilterLowCutOff(selectedItem);
+            }
+        }
+
+        void OnFilterHighCutOffSelected(object sender, EventArgs e)
+        {
+            if (m_filterHighCutOffComboBox.SelectedItem is FrequencyItem selectedItem)
+            {
+                FilterHighCutOff(selectedItem);
             }
         }
 
