@@ -97,6 +97,12 @@ namespace EEGCore.Processing.Analysis
                 while (again);
             }
 
+            // set up range names
+            foreach (var range in resultRanges)
+            {
+                range.Name = "Artifact candidate";
+            }
+
             var res = new RecordRangeResult() 
             { 
                 Ranges = resultRanges,
