@@ -974,7 +974,7 @@ namespace EEGCleaning
 
         void OnAutoRanges(object sender, EventArgs e)
         {
-            var rangeDetector = new ArtefactCandidateRangeDetector() { Input = ViewModel.VisibleRecord };
+            var rangeDetector = new ArtifactCandidateRangeDetector() { Input = ViewModel.VisibleRecord };
             var result = rangeDetector.Analyze();
             if (result.Succeed)
             {

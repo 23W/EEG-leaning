@@ -11,7 +11,7 @@ namespace EEGCore.Processing.Analysis
         public IEnumerable<RecordRange> Ranges { get; set; } = Enumerable.Empty<RecordRange>();
     }
 
-    public class ArtefactCandidateRangeDetector : AnalyzerBase<RecordRangeResult>
+    public class ArtifactCandidateRangeDetector : AnalyzerBase<RecordRangeResult>
     {
         #region Properties
 
