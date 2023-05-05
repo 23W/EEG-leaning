@@ -978,9 +978,6 @@ namespace EEGCleaning
             var result = rangeDetector.Analyze();
             if (result.Succeed)
             {
-                ViewModel.VisibleRecord.Ranges.Clear();
-                ViewModel.VisibleRecord.Ranges.AddRange(result.Ranges);
-
                 UpdatePlot();
             }
         }

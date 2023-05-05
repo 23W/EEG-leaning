@@ -13,6 +13,13 @@ namespace EEGCore.Processing.Analysis
 
     public class ArtifactCandidateRangeDetector : AnalyzerBase<RecordRangeResult>
     {
+        public enum ApplyRangesToInput
+        {
+            None,
+            Replace,
+            ReplaceSameName,
+        };
+
         #region Properties
 
         public Record Input { get; init; } = new Record();
@@ -26,6 +33,8 @@ namespace EEGCore.Processing.Analysis
         public double RangeMarginSecounds { get; set; } = 2;
 
         public double RangePaddingSecounds { get; set; } = 1.5;
+        
+        public ApplyRangesToInput ApplyToInput { get; set; } = ApplyRangesToInput.Replace;
 
         #endregion
 
@@ -108,6 +117,23 @@ namespace EEGCore.Processing.Analysis
                 Ranges = resultRanges,
                 Succeed = resultRanges.Any()
             };
+
+            if (res.Succeed)
+            {
+                switch (ApplyToInput)
+                {
+                    case ApplyRangesToInput.Replace:
+                        Input.Ranges.Clear();
+                        Input.Ranges.AddRange(res.Ranges);
+                        break;
+
+                    case ApplyRangesToInput.ReplaceSameName:
+                        Input.Ranges.RemoveAll(src => res.Ranges.Any(dst => dst.Name.Equals(src.Name, StringComparison.OrdinalIgnoreCase)));
+                        Input.Ranges.AddRange(res.Ranges);
+                        Input.Ranges.Sort((r1, r2) => r1.From - r2.From);
+                        break;
+                }
+            }
 
             return res;
         }
