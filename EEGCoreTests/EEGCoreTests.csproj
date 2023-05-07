@@ -28,6 +28,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="TestData\cleanEEG.arff">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="TestData\eyeA_1Hz.arff">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="TestData\eyeA_2Hz.arff">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="TestData\Sources.arff">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
