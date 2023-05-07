@@ -55,6 +55,8 @@ namespace EEGCleaning.Model
 
     internal class RecordViewModel
     {
+        #region Properties
+
         internal ModelViewMode ViewMode { get; set; } = ModelViewMode.Record;
 
         internal RecordFactoryOptions RecordOptions { get; set; } = RecordFactoryOptions.DefaultEEGNoFilter;
@@ -77,12 +79,18 @@ namespace EEGCleaning.Model
 
         internal FrequencyItem CutOffHighFrequency { get => m_cutOffHighFreq; set { m_cutOffHighFreq = value; ResetVisibleRecord(); } }
 
-        #region Helper Methods
+        #endregion
 
-        void ResetVisibleRecord()
+        #region Methods
+
+        internal void ResetVisibleRecord()
         {
             m_visibleRecord = default;
         }
+        
+        #endregion
+
+        #region Helper Methods
 
         Record GetVisibleRecord()
         {

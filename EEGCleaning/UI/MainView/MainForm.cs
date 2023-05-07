@@ -253,6 +253,7 @@ namespace EEGCleaning
 
             if (oldViewMode != viewMode)
             {
+                ViewModel.ResetVisibleRecord();
                 ViewModel.Position = TimePositionItem.Default;
                 ViewModel.Amplitude = AmplItem.Default;
             }
@@ -293,11 +294,13 @@ namespace EEGCleaning
                     m_icaButton.Menu = m_icaContextMenuStrip;
                     m_icaButton.BackColor = Color.Transparent;
                     m_icaComposeButton.Visible = false;
+                    m_autoButton.Visible = true;
                     break;
                 case ModelViewMode.ICA:
                     m_icaButton.Menu = default;
                     m_icaButton.BackColor = SystemColors.ControlDark;
                     m_icaComposeButton.Visible = true;
+                    m_autoButton.Visible = false;
                     break;
             }
 
@@ -984,7 +987,13 @@ namespace EEGCleaning
 
         void OnAutoClean(object sender, EventArgs e)
         {
-
+            var autoCleaner = new AutoArtifactCleaner() { Input = ViewModel.VisibleRecord };
+            var result = autoCleaner.Analyze();
+            if (result.Succeed)
+            {
+                ViewModel.ProcessedRecord = result.Output!;
+                UpdatePlot();
+            }
         }
 
         void OnLoadTestData(object sender, EventArgs e)
