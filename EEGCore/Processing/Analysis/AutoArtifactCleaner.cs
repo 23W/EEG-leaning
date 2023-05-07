@@ -29,6 +29,8 @@ namespace EEGCore.Processing.Analysis
 
         public Record Input { get; init; } = new Record();
 
+        public bool WholeRecord { get; set; } = false;
+
         public bool CleanSingleElectrodeArtifacts { get; set; } = true;
 
         public bool CleanReferenceElectrodeArtifacts { get; set; } = true;
@@ -121,8 +123,22 @@ namespace EEGCore.Processing.Analysis
 
         RecordRangeResult FindRanges()
         {
-            var rangeDetector = new ArtifactCandidateRangeDetector() { Input = Input };
-            var result = rangeDetector.Analyze();
+            var result = default(RecordRangeResult);
+
+            if (WholeRecord)
+            {
+                result = new RecordRangeResult()
+                {
+                    Ranges = new List<RecordRange>() { new RecordRange() { From = 0, Duration = Input.Duration } },
+                    Succeed = true,
+                };
+            }
+            else
+            {
+                var rangeDetector = new ArtifactCandidateRangeDetector() { Input = Input };
+                result = rangeDetector.Analyze();
+            }
+
             return result;
         }
 
