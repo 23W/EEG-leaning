@@ -1,0 +1,61 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33213.308
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EEGCleaning", "EEGCleaning\EEGCleaning.csproj", "{A64455CE-8044-4155-ABA2-3121A666F41E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EEGCore", "EEGCore\EEGCore.csproj", "{524BE983-7EF1-44E6-8CD7-A83B26F4359F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libraries", "Libraries", "{0C449812-51F5-47ED-96A9-3BE6CCEA939C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "oxyplot", "oxyplot", "{E0BE1B2B-9949-4765-B801-956C85308F65}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OxyPlot.WindowsForms", "Libraries\oxyplot\Source\OxyPlot.WindowsForms\OxyPlot.WindowsForms.csproj", "{32861FD4-46E1-4BD7-847A-BC4752E8976F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OxyPlot", "Libraries\oxyplot\Source\OxyPlot\OxyPlot.csproj", "{30A4AA9F-789A-4F57-A942-A86F4385C0A9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EEGCoreTests", "EEGCoreTests\EEGCoreTests.csproj", "{1499AEB7-609E-4741-A116-9A97BE19E75A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{524BE983-7EF1-44E6-8CD7-A83B26F4359F} = {524BE983-7EF1-44E6-8CD7-A83B26F4359F}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A64455CE-8044-4155-ABA2-3121A666F41E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A64455CE-8044-4155-ABA2-3121A666F41E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A64455CE-8044-4155-ABA2-3121A666F41E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A64455CE-8044-4155-ABA2-3121A666F41E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{524BE983-7EF1-44E6-8CD7-A83B26F4359F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{524BE983-7EF1-44E6-8CD7-A83B26F4359F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{524BE983-7EF1-44E6-8CD7-A83B26F4359F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{524BE983-7EF1-44E6-8CD7-A83B26F4359F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{32861FD4-46E1-4BD7-847A-BC4752E8976F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{32861FD4-46E1-4BD7-847A-BC4752E8976F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{32861FD4-46E1-4BD7-847A-BC4752E8976F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{32861FD4-46E1-4BD7-847A-BC4752E8976F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{30A4AA9F-789A-4F57-A942-A86F4385C0A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{30A4AA9F-789A-4F57-A942-A86F4385C0A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{30A4AA9F-789A-4F57-A942-A86F4385C0A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{30A4AA9F-789A-4F57-A942-A86F4385C0A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1499AEB7-609E-4741-A116-9A97BE19E75A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1499AEB7-609E-4741-A116-9A97BE19E75A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1499AEB7-609E-4741-A116-9A97BE19E75A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1499AEB7-609E-4741-A116-9A97BE19E75A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{E0BE1B2B-9949-4765-B801-956C85308F65} = {0C449812-51F5-47ED-96A9-3BE6CCEA939C}
+		{32861FD4-46E1-4BD7-847A-BC4752E8976F} = {E0BE1B2B-9949-4765-B801-956C85308F65}
+		{30A4AA9F-789A-4F57-A942-A86F4385C0A9} = {E0BE1B2B-9949-4765-B801-956C85308F65}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D80FDCED-B16C-415B-863C-07E6B89CF895}
+	EndGlobalSection
+EndGlobal

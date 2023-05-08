@@ -1,0 +1,4 @@
+[submodule "Libraries/oxyplot"]
+	path = Libraries/oxyplot
+	url = https://github.com/23W/oxyplot/
+	branch = workshop
