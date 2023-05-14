@@ -21,6 +21,9 @@ namespace EEGCleaning.UI.MainView.StateMachine
                 MenuHiPass10Suppress,
                 MenuHiPass20Suppress,
                 MenuHiPass30Suppress,
+                MenuSeparator,
+                MenuHideLead,
+                MenuShowAllLeads
             });
         }
 
@@ -40,10 +43,14 @@ namespace EEGCleaning.UI.MainView.StateMachine
         ToolStripMenuItem MenuHiPass10Suppress { get; init; } = new ToolStripMenuItem("HiPass 10 Hz");
         ToolStripMenuItem MenuHiPass20Suppress { get; init; } = new ToolStripMenuItem("HiPass 20 Hz");
         ToolStripMenuItem MenuHiPass30Suppress { get; init; } = new ToolStripMenuItem("HiPass 30 Hz");
+        ToolStripMenuItem MenuHideLead { get; init; } = new ToolStripMenuItem("Hide");
+        ToolStripMenuItem MenuShowAllLeads { get; init; } = new ToolStripMenuItem("Show All");
 
         Point Point { get; set; } = Point.Empty;
 
         ICARecord IndependentComponents => StateMachine.MainView.ViewModel.IndependentComponents;
+        IEnumerable<ComponentLead> VisibleComponents => StateMachine.MainView.ViewModel.VisibleLeads.Cast<ComponentLead>();
+        List<string> HiddenComponentNames => StateMachine.MainView.ViewModel.HiddenLeadNames;
         ComponentLead ComponentLead { get; set; } = new ComponentLead();
         int ComponentIndex => IndependentComponents.Leads.IndexOf(ComponentLead);
 
@@ -72,6 +79,7 @@ namespace EEGCleaning.UI.MainView.StateMachine
             MenuHiPass10Suppress.Checked = ComponentLead.Suppress == SuppressType.HiPass10;
             MenuHiPass20Suppress.Checked = ComponentLead.Suppress == SuppressType.HiPass20;
             MenuHiPass30Suppress.Checked = ComponentLead.Suppress == SuppressType.HiPass30;
+            MenuShowAllLeads.Enabled = HiddenComponentNames.Any(name => IndependentComponents.Leads.Any(c => c.Name == name));
 
             MenuEyeArtifact.Click += OnMenuEyeArtifactItemClicked;
             MenuReferenceElectrodeArtifact.Click += OnMenuReferenceElectrodeArtifactItemClicked;
@@ -81,6 +89,8 @@ namespace EEGCleaning.UI.MainView.StateMachine
             MenuHiPass10Suppress.Click += OnMenuHiPass10SuppressItemClicked;
             MenuHiPass20Suppress.Click += OnMenuHiPass20SuppressItemClicked;
             MenuHiPass30Suppress.Click += OnMenuHiPass30SuppressItemClicked;
+            MenuHideLead.Click += OnMenuHideLeadItemClicked;
+            MenuShowAllLeads.Click += MenuShowAllLeadsItemClicked;
 
             Menu.Show(StateMachine.MainView, Point);
             Menu.Closed += OnMenuClosed;
@@ -98,6 +108,8 @@ namespace EEGCleaning.UI.MainView.StateMachine
             MenuHiPass10Suppress.Click -= OnMenuHiPass10SuppressItemClicked;
             MenuHiPass20Suppress.Click -= OnMenuHiPass20SuppressItemClicked;
             MenuHiPass30Suppress.Click -= OnMenuHiPass30SuppressItemClicked;
+            MenuHideLead.Click -= OnMenuHideLeadItemClicked;
+            MenuShowAllLeads.Click -= MenuShowAllLeadsItemClicked;
 
             Menu.Closed -= OnMenuClosed;
             Menu.Hide();
@@ -202,6 +214,22 @@ namespace EEGCleaning.UI.MainView.StateMachine
         {
             ComponentLead.Suppress = SuppressType.HiPass30;
             IndependentComponents.BuildLeadAlternativeSuppress(ComponentIndex);
+
+            StateMachine.MainView.UpdatePlot();
+            StateMachine.SwitchState(PrevieousStateName);
+        }
+
+        void OnMenuHideLeadItemClicked(object? sender, EventArgs e)
+        {
+            HiddenComponentNames.Add(ComponentLead.Name);
+
+            StateMachine.MainView.UpdatePlot();
+            StateMachine.SwitchState(PrevieousStateName);
+        }
+
+        void MenuShowAllLeadsItemClicked(object? sender, EventArgs e)
+        {
+            HiddenComponentNames.Clear();
 
             StateMachine.MainView.UpdatePlot();
             StateMachine.SwitchState(PrevieousStateName);

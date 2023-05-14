@@ -254,6 +254,7 @@ namespace EEGCleaning
             if (oldViewMode != viewMode)
             {
                 ViewModel.ResetVisibleRecord();
+                ViewModel.HiddenLeadNames.Clear();
                 ViewModel.Position = TimePositionItem.Default;
                 ViewModel.Amplitude = AmplItem.Default;
             }
@@ -265,12 +266,12 @@ namespace EEGCleaning
             switch (ViewModel.ViewMode)
             {
                 case ModelViewMode.Record:
-                    PopulatedPlotModel(plotModel, ViewModel.VisibleRecord);
+                    PopulatedPlotModel(plotModel);
                     break;
 
                 case ModelViewMode.ICA:
-                    PopulatedPlotModel(plotModel, ViewModel.VisibleRecord);
-                    PopulatedPlotWeightsModel(plotWeightsModel, (ICARecord)ViewModel.VisibleRecord);
+                    PopulatedPlotModel(plotModel);
+                    PopulatedPlotWeightsModel(plotWeightsModel);
                     break;
             }
 
@@ -337,11 +338,14 @@ namespace EEGCleaning
             factory.ToFile(path, ViewModel.VisibleRecord);
         }
 
-        void PopulatedPlotModel(PlotModel plotModel, Record record)
+        void PopulatedPlotModel(PlotModel plotModel)
         {
-            plotModel.Axes.ToList().ForEach(a => UnsubsribePlotEvents(a));
-            plotModel.Series.ToList().ForEach(a => UnsubsribePlotEvents(a));
-            plotModel.Annotations.ToList().ForEach(a => UnsubsribePlotEvents(a));
+            var record = ViewModel.VisibleRecord;
+            var leads = ViewModel.VisibleLeads;
+
+            plotModel.Axes.ToList().ForEach(UnsubsribePlotEvents);
+            plotModel.Series.ToList().ForEach(UnsubsribePlotEvents);
+            plotModel.Annotations.ToList().ForEach(UnsubsribePlotEvents);
 
             plotModel.Axes.Clear();
             plotModel.Series.Clear();
@@ -363,20 +367,20 @@ namespace EEGCleaning
             SubsribePlotEvents(xAxis);
             plotModel.Axes.Add(xAxis);
 
-            var maxSignalAmpl = record.GetMaximumAbsoluteValue();
+            var maxSignalAmpl = leads.GetMaximumAbsoluteValue();
             var signalRange = Tuple.Create(-maxSignalAmpl, maxSignalAmpl);
 
-            for (var leadIndex = 0; leadIndex < record.Leads.Count; leadIndex++)
+            for (int leadIndex = 0, leadCount = leads.Count(); leadIndex < leadCount; leadIndex++)
             {
-                var lead = record.Leads[leadIndex];
+                var lead = leads.ElementAt(leadIndex);
 
-                var leadAxisIndex = record.Leads.Count - leadIndex - 1;
+                var leadAxisIndex = leadCount - leadIndex - 1;
                 var leadAxis = new LinearAxis()
                 {
                     Title = lead.Name,
                     Key = lead.Name,
-                    StartPosition = (double)(leadAxisIndex) / record.Leads.Count,
-                    EndPosition = (double)(leadAxisIndex + 1) / record.Leads.Count,
+                    StartPosition = (double)(leadAxisIndex) / leadCount,
+                    EndPosition = (double)(leadAxisIndex + 1) / leadCount,
                     Position = AxisPosition.Left,
                     MajorGridlineStyle = LineStyle.Solid,
                     Minimum = signalRange.Item1,
@@ -386,6 +390,7 @@ namespace EEGCleaning
                     IsPanEnabled = false,
                     Tag = lead,
                 };
+                SubsribePlotEvents(leadAxis);
 
                 var leadSeries = new LineSeries()
                 {
@@ -498,8 +503,11 @@ namespace EEGCleaning
             }
         }
 
-        void PopulatedPlotWeightsModel(PlotModel plotModel, ICARecord record)
+        void PopulatedPlotWeightsModel(PlotModel plotModel)
         {
+            var record = (ICARecord)ViewModel.VisibleRecord;
+            var leads = ViewModel.VisibleLeads;
+
             plotModel.Axes.Clear();
             plotModel.Series.Clear();
             plotModel.Annotations.Clear();
@@ -523,17 +531,17 @@ namespace EEGCleaning
 
             plotModel.Axes.Add(xAxis);
 
-            for (var componentIndex = 0; componentIndex < record.Leads.Count; componentIndex++)
+            for (int componentIndex = 0, componentCount = leads.Count(); componentIndex < componentCount; componentIndex++)
             {
-                var component = record.Leads[componentIndex];
+                var component = leads.ElementAt(componentIndex);
 
-                var componentAxisIndex = record.Leads.Count - componentIndex - 1;
+                var componentAxisIndex = componentCount - componentIndex - 1;
                 var componentAxis = new LinearAxis()
                 {
                     Title = component.Name,
                     Key = component.Name,
-                    StartPosition = (double)(componentAxisIndex) / record.Leads.Count,
-                    EndPosition = (double)(componentAxisIndex + 1) / record.Leads.Count,
+                    StartPosition = (double)(componentAxisIndex) / componentCount,
+                    EndPosition = (double)(componentAxisIndex + 1) / componentCount,
                     Position = AxisPosition.Left,
                     MajorGridlineStyle = LineStyle.Solid,
                     IsPanEnabled = false,
@@ -773,7 +781,7 @@ namespace EEGCleaning
 
                 ViewModel.Amplitude = amplitude;
 
-                var maxSignalAmpl = new Lazy<double>(ViewModel.VisibleRecord.GetMaximumAbsoluteValue);
+                var maxSignalAmpl = new Lazy<double>(ViewModel.VisibleLeads.GetMaximumAbsoluteValue);
 
                 foreach (var yAxis in PlotModelYAxes)
                 {

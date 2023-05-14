@@ -69,6 +69,10 @@ namespace EEGCleaning.Model
 
         internal Record VisibleRecord => GetVisibleRecord();
 
+        internal IEnumerable<Lead> VisibleLeads => VisibleRecord.Leads.Where(l => !HiddenLeadNames.Contains(l.Name)).ToList();
+
+        internal List<string> HiddenLeadNames { get; set; } = new List<string>();
+
         internal TimePositionItem Position { get; set; } = TimePositionItem.Default;
 
         internal SpeedItem Speed { get; set; } = SpeedItem.Default;

@@ -20,6 +20,7 @@ namespace EEGCleaning.UI.MainView.StateMachine
             EventMouseMove.AfterEvent += OnNextState;
 
             AddState(EEGRecordState.Name, new EEGRecordState(this));
+            AddState(EEGLeadContexMenuState.Name, new EEGLeadContexMenuState(this));
             AddState(EEGRecordInsertNewRangeState.Name, new EEGRecordInsertNewRangeState(this));
             AddState(EEGRecordRangeContextMenuState.Name, new EEGRecordRangeContextMenuState(this));
             AddState(ICARecordState.Name, new ICARecordState(this));
