@@ -1,4 +1,3 @@
-using Accord.Statistics.Analysis;
 using EEGCleaning.Model;
 using EEGCleaning.UI.MainView.StateMachine;
 using EEGCleaning.Utilities;
@@ -12,6 +11,7 @@ using OxyPlot.Annotations;
 using OxyPlot.Axes;
 using OxyPlot.Series;
 using System.Diagnostics;
+using System.Reflection;
 using System.Text.Json;
 
 namespace EEGCleaning
@@ -39,6 +39,7 @@ namespace EEGCleaning
 
         #region Internal Properties
 
+        OxyImage ArtifactImage { get; init; }
         bool NeedPlotRescale { get; set; } = false;
         bool InPlotRescaleExecution { get; set; } = false;
         bool InFilterChangeExecution { get; set; } = false;
@@ -134,6 +135,12 @@ namespace EEGCleaning
         public MainForm()
         {
             InitializeComponent();
+
+            var assembly = Assembly.GetExecutingAssembly();
+            using (var stream = assembly.GetManifestResourceStream("EEGCleaning.Resources.Artifact.png"))
+            {
+                ArtifactImage = new OxyImage(stream);
+            }
 
             m_speedComboBox.Items.AddRange(SpeedItems);
             m_amplComboBox.Items.AddRange(AmplItems);
@@ -422,21 +429,22 @@ namespace EEGCleaning
                         leadAlternativeSeries.Points.AddRange(alternativePoints);
                     }
 
-                    leadAnnotation = new PointAnnotation()
+                    if (componentLead.IsArtifact)
                     {
-                        Shape = componentLead.IsArtifact ? MarkerType.Square : MarkerType.Diamond,
-                        Fill = componentLead.IsArtifact ? OxyColors.DarkRed : OxyColors.DarkGreen,
-                        Size = 8,
-                        X = 0,
-                        Y = 0,
-                        XAxisKey = xAxis.Key,
-                        YAxisKey = leadAxis.Key,
-                        ClipByXAxis = false,
-                        ClipByYAxis = false,
-                        Tag = lead,
-                    };
+                        leadAnnotation = new ImageAnnotation()
+                        {
+                            ImageSource = ArtifactImage,
+                            Opacity = 0.8,
+                            Interpolate = true,
+                            X = new PlotLength(0, PlotLengthUnit.RelativeToPlotArea),
+                            Y = new PlotLength((double)(leadIndex + 0.5) / leadCount, PlotLengthUnit.RelativeToPlotArea),
+                            HorizontalAlignment = OxyPlot.HorizontalAlignment.Left,
+                            VerticalAlignment = OxyPlot.VerticalAlignment.Middle,
+                            Tag = lead,
+                        };
 
-                    SubsribePlotEvents(leadAnnotation);
+                        SubsribePlotEvents(leadAnnotation);
+                    }
                 }
 
                 plotModel.Axes.Add(leadAxis);
