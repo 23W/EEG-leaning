@@ -336,7 +336,12 @@ namespace EEGCleaning
 
             ViewModel.SourceRecord = factory.FromFile(path, options);
             ViewModel.RecordOptions = options;
-            ViewModel.ProcessedRecord = ViewModel.SourceRecord;
+            ViewModel.ProcessedRecord = ViewModel.SourceRecord.Clone();
+        }
+
+        void ResetRecord()
+        {
+            ViewModel.ProcessedRecord = ViewModel.SourceRecord.Clone();
         }
 
         void SaveRecord(string path)
@@ -1010,6 +1015,14 @@ namespace EEGCleaning
                 ViewModel.ProcessedRecord = result.Output!;
                 UpdatePlot();
             }
+        }
+
+        void OnResetDataToOrigin(object sender, EventArgs e)
+        {
+            ResetRecord();
+
+            UpdatePlot(ModelViewMode.Record);
+            StateMachine.SwitchState(EEGRecordState.Name);
         }
 
         void OnLoadTestData(object sender, EventArgs e)
