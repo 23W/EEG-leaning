@@ -1,4 +1,5 @@
 using EEGCleaning.Model;
+using EEGCleaning.UI.MainView;
 using EEGCleaning.UI.MainView.StateMachine;
 using EEGCleaning.Utilities;
 using EEGCore.Data;
@@ -1008,12 +1009,27 @@ namespace EEGCleaning
 
         void OnAutoClean(object sender, EventArgs e)
         {
-            var autoCleaner = new AutoArtifactCleaner() { Input = ViewModel.VisibleRecord };
-            var result = autoCleaner.Analyze();
-            if (result.Succeed)
+            using (var progressForm = new ProgressForm())
             {
-                ViewModel.ProcessedRecord = result.Output!;
-                UpdatePlot();
+                progressForm.Start += async form =>
+                {
+                    var taskResult = await Task.Run(() =>
+                    {
+                        var autoCleaner = new AutoArtifactCleaner() { Input = ViewModel.VisibleRecord };
+                        var result = autoCleaner.Analyze();
+                        return result;
+                    });
+
+                    if (taskResult.Succeed)
+                    {
+                        ViewModel.ProcessedRecord = taskResult.Output!;
+                        UpdatePlot();
+                    }
+
+                    form.DialogResult = DialogResult.OK;
+                };
+
+                progressForm.ShowDialog();
             }
         }
 
