@@ -23,7 +23,6 @@ namespace EEGCleaning.UI.MainView.StateMachine
         internal static string Name => nameof(EEGLeadContexMenuState);
 
         ContextMenuStrip Menu { get; init; } = new ContextMenuStrip();
-        ToolStripSeparator MenuSeparator { get; init; } = new ToolStripSeparator();
         ToolStripMenuItem MenuHideLead { get; init; } = new ToolStripMenuItem("Hide");
         ToolStripMenuItem MenuShowAllLeads { get; init; } = new ToolStripMenuItem("Show All");
 

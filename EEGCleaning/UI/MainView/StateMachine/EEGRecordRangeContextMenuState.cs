@@ -14,7 +14,7 @@ namespace EEGCleaning.UI.MainView.StateMachine
             {
                 MenuStandardICAItem,
                 MenuNormalizedICAItem,
-                MenuSeparator,
+                new ToolStripSeparator(),
                 MenuEditItem,
                 MenuDeleteItem,
             });
@@ -27,7 +27,6 @@ namespace EEGCleaning.UI.MainView.StateMachine
         internal static string Name => nameof(EEGRecordRangeContextMenuState);
 
         ContextMenuStrip Menu { get; init; }
-        ToolStripSeparator MenuSeparator { get; init; } = new ToolStripSeparator();
         ToolStripMenuItem MenuStandardICAItem { get; init; } = new ToolStripMenuItem("Standard ICA");
         ToolStripMenuItem MenuNormalizedICAItem { get; init; } = new ToolStripMenuItem("Normalize Power ICA");
         ToolStripMenuItem MenuEditItem { get; init; } = new ToolStripMenuItem("Edit");

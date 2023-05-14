@@ -15,13 +15,13 @@ namespace EEGCleaning.UI.MainView.StateMachine
                 MenuEyeArtifact,
                 MenuReferenceElectrodeArtifact,
                 MenuSingleElectrodeArtifact,
-                MenuSeparator,
+                new ToolStripSeparator(),
                 MenuNotSuppress,
                 MenuZeroLeadSuppress,
                 MenuHiPass10Suppress,
                 MenuHiPass20Suppress,
                 MenuHiPass30Suppress,
-                MenuSeparator,
+                new ToolStripSeparator(),
                 MenuHideLead,
                 MenuShowAllLeads
             });
@@ -37,7 +37,6 @@ namespace EEGCleaning.UI.MainView.StateMachine
         ToolStripMenuItem MenuEyeArtifact { get; init; } = new ToolStripMenuItem("Eye Artifact");
         ToolStripMenuItem MenuReferenceElectrodeArtifact { get; init; } = new ToolStripMenuItem("Reference Electrode Artifact");
         ToolStripMenuItem MenuSingleElectrodeArtifact { get; init; } = new ToolStripMenuItem("Single Electrode Artifact");
-        ToolStripSeparator MenuSeparator { get; init; } = new ToolStripSeparator();
         ToolStripMenuItem MenuNotSuppress { get; init; } = new ToolStripMenuItem("None");
         ToolStripMenuItem MenuZeroLeadSuppress { get; init; } = new ToolStripMenuItem("Zero Lead");
         ToolStripMenuItem MenuHiPass10Suppress { get; init; } = new ToolStripMenuItem("HiPass 10 Hz");
