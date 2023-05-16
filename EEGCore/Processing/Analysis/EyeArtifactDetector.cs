@@ -5,6 +5,7 @@ using MathNet.Numerics.LinearAlgebra.Double;
 using MathNet.Numerics.Statistics;
 using System.Diagnostics;
 using System.Text.Json;
+using System.Xml.Linq;
 using Vector = EEGCore.Data.Vector;
 
 namespace EEGCore.Processing.Analysis
@@ -81,6 +82,10 @@ namespace EEGCore.Processing.Analysis
             if (results.Any())
             {
                 var currentPath = Directory.GetCurrentDirectory();
+
+                var names = Input.X.Leads.Select(l=>l.Name).ToList();
+                File.WriteAllText(Path.Combine(currentPath, "EyeDipole-leads.json"), JsonSerializer.Serialize(names));
+
                 foreach (var dipole in results)
                 {
                     var name = $"EyeDipole-{dipole.Lead!.Name}.json";
