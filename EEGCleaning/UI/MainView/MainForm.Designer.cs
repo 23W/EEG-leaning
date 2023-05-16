@@ -39,6 +39,7 @@ namespace EEGCleaning
             m_openFileDialog = new OpenFileDialog();
             m_loadButton = new MenuButton();
             m_loadContextMenuStrip = new ContextMenuStrip(components);
+            resetDataToolStripMenuItem = new ToolStripMenuItem();
             loadEEGToolStripMenuItem = new ToolStripMenuItem();
             loadTestDataToolStripMenuItem = new ToolStripMenuItem();
             m_saveFileDialog = new SaveFileDialog();
@@ -117,7 +118,7 @@ namespace EEGCleaning
             // 
             // m_openFileDialog
             // 
-            m_openFileDialog.Filter = "ARFF files|*.arff|All files|*.*";
+            m_openFileDialog.Filter = "ARFF files|*.arff|EDF files (*.edf)|*.edf";
             // 
             // m_loadButton
             // 
@@ -135,21 +136,28 @@ namespace EEGCleaning
             // m_loadContextMenuStrip
             // 
             m_loadContextMenuStrip.ImageScalingSize = new Size(20, 20);
-            m_loadContextMenuStrip.Items.AddRange(new ToolStripItem[] { loadEEGToolStripMenuItem, loadTestDataToolStripMenuItem });
+            m_loadContextMenuStrip.Items.AddRange(new ToolStripItem[] { resetDataToolStripMenuItem, loadEEGToolStripMenuItem, loadTestDataToolStripMenuItem });
             m_loadContextMenuStrip.Name = "m_loadContextMenuStrip";
-            m_loadContextMenuStrip.Size = new Size(151, 48);
+            m_loadContextMenuStrip.Size = new Size(180, 70);
+            // 
+            // resetDataToolStripMenuItem
+            // 
+            resetDataToolStripMenuItem.Name = "resetDataToolStripMenuItem";
+            resetDataToolStripMenuItem.Size = new Size(179, 22);
+            resetDataToolStripMenuItem.Text = "Reset Data to Origin";
+            resetDataToolStripMenuItem.Click += OnResetDataToOrigin;
             // 
             // loadEEGToolStripMenuItem
             // 
             loadEEGToolStripMenuItem.Name = "loadEEGToolStripMenuItem";
-            loadEEGToolStripMenuItem.Size = new Size(150, 22);
+            loadEEGToolStripMenuItem.Size = new Size(179, 22);
             loadEEGToolStripMenuItem.Text = "Load EEG";
             loadEEGToolStripMenuItem.Click += OnLoadEEGData;
             // 
             // loadTestDataToolStripMenuItem
             // 
             loadTestDataToolStripMenuItem.Name = "loadTestDataToolStripMenuItem";
-            loadTestDataToolStripMenuItem.Size = new Size(150, 22);
+            loadTestDataToolStripMenuItem.Size = new Size(179, 22);
             loadTestDataToolStripMenuItem.Text = "Load Test Data";
             loadTestDataToolStripMenuItem.Click += OnLoadTestData;
             // 
@@ -406,5 +414,6 @@ namespace EEGCleaning
         private ContextMenuStrip m_autoContextMenuStrip;
         private ToolStripMenuItem autoCleanToolStripMenuItem;
         private ToolStripMenuItem autoRangesToolStripMenuItem;
+        private ToolStripMenuItem resetDataToolStripMenuItem;
     }
 }

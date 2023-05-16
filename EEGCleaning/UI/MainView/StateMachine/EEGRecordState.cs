@@ -113,6 +113,15 @@ namespace EEGCleaning.UI.MainView.StateMachine
 
                     handled = true;
                 }
+                else if (args.Sender is Lead lead)
+                {
+                    nextState = EEGLeadContexMenuState.Name;
+
+                    var contextMenu = StateMachine.FindState(nextState) as EEGLeadContexMenuState;
+                    contextMenu?.InitState(lead);
+
+                    handled = true;
+                }
             }
             else if (LeftClickTime.HasValue)
             {

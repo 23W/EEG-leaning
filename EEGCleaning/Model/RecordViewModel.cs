@@ -40,6 +40,8 @@ namespace EEGCleaning.Model
         public override string ToString() => HasValue ? $"{Value} mm/sec" : "Auto";
 
         static internal SpeedItem Default => new SpeedItem();
+
+        static internal SpeedItem Standard => new SpeedItem() { Value = 15 };
     }
 
     internal class AmplItem
@@ -69,9 +71,13 @@ namespace EEGCleaning.Model
 
         internal Record VisibleRecord => GetVisibleRecord();
 
+        internal IEnumerable<Lead> VisibleLeads => VisibleRecord.Leads.Where(l => !HiddenLeadNames.Contains(l.Name)).ToList();
+
+        internal List<string> HiddenLeadNames { get; set; } = new List<string>();
+
         internal TimePositionItem Position { get; set; } = TimePositionItem.Default;
 
-        internal SpeedItem Speed { get; set; } = SpeedItem.Default;
+        internal SpeedItem Speed { get; set; } = SpeedItem.Standard;
 
         internal AmplItem Amplitude { get; set; } = AmplItem.Default;
 

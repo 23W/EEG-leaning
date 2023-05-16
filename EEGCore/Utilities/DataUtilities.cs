@@ -4,9 +4,21 @@ namespace EEGCore.Utilities
 {
     public static class DataUtilities
     {
+        public static string CleanEEGLeadName(string leadName)
+        {
+            leadName = leadName.Replace("EEG", "")
+                               .Replace(".", "")
+                               .Replace(",", "")
+                               .Replace("-", "")
+                               .Replace(" ", "");
+            return leadName;
+        }
+
         public static LeadType GetEEGLeadTypeByName(string leadName)
         {
             var leadType = LeadType.Unknown;
+
+            leadName = CleanEEGLeadName(leadName).ToLower();
 
             if (leadName.StartsWith("AF", StringComparison.OrdinalIgnoreCase) ||
                 leadName.StartsWith("F", StringComparison.OrdinalIgnoreCase))
@@ -35,9 +47,7 @@ namespace EEGCore.Utilities
 
         public static LeadCode? GetEEGLeadCodeByName(string leadName)
         {
-            leadName = leadName.Replace(" ", "")
-                               .Replace("-", "")
-                               .ToLower();
+            leadName = CleanEEGLeadName(leadName).ToLower();
 
             var leadCode = Enum.GetValues(typeof(LeadCode))
                                .Cast<LeadCode>()

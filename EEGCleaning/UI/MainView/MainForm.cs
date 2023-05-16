@@ -1,5 +1,5 @@
-using Accord.Statistics.Analysis;
 using EEGCleaning.Model;
+using EEGCleaning.UI.MainView;
 using EEGCleaning.UI.MainView.StateMachine;
 using EEGCleaning.Utilities;
 using EEGCore.Data;
@@ -12,7 +12,9 @@ using OxyPlot.Annotations;
 using OxyPlot.Axes;
 using OxyPlot.Series;
 using System.Diagnostics;
+using System.Reflection;
 using System.Text.Json;
+using System.Windows.Forms;
 
 namespace EEGCleaning
 {
@@ -34,11 +36,13 @@ namespace EEGCleaning
         internal ToolStripItem StandardICAControl => m_standradICAToolStripMenuItem;
         internal ToolStripItem NormalizedICAControl => m_normalizedICAToolStripMenuItem;
         internal Button ICAComposeControl => m_icaComposeButton;
+        internal SaveFileDialog SaveFileDialog => m_saveFileDialog;
 
         #endregion
 
         #region Internal Properties
 
+        OxyImage ArtifactImage { get; init; }
         bool NeedPlotRescale { get; set; } = false;
         bool InPlotRescaleExecution { get; set; } = false;
         bool InFilterChangeExecution { get; set; } = false;
@@ -135,6 +139,12 @@ namespace EEGCleaning
         {
             InitializeComponent();
 
+            var assembly = Assembly.GetExecutingAssembly();
+            using (var stream = assembly.GetManifestResourceStream("EEGCleaning.Resources.Artifact.png"))
+            {
+                ArtifactImage = new OxyImage(stream);
+            }
+
             m_speedComboBox.Items.AddRange(SpeedItems);
             m_amplComboBox.Items.AddRange(AmplItems);
             m_filterLowCutOffComboBox.Items.AddRange(FrequencyItems);
@@ -184,6 +194,20 @@ namespace EEGCleaning
         }
 
         internal void RunICADecompose(RecordRange? range = default, bool useVisibleRecord = true, bool normalizePower = false, bool analyzeComponents = true)
+        {
+            using (var progressForm = new ProgressForm())
+            {
+                progressForm.Start += async form =>
+                {
+                    await Task.Run(() => DoICADecompose(range, useVisibleRecord, normalizePower, analyzeComponents));
+                    form.DialogResult = DialogResult.OK;
+                };
+
+                progressForm.ShowDialog();
+            }
+        }
+
+        void DoICADecompose(RecordRange? range, bool useVisibleRecord, bool normalizePower, bool analyzeComponents)
         {
             var ica = new FastICA()
             {
@@ -254,6 +278,7 @@ namespace EEGCleaning
             if (oldViewMode != viewMode)
             {
                 ViewModel.ResetVisibleRecord();
+                ViewModel.HiddenLeadNames.Clear();
                 ViewModel.Position = TimePositionItem.Default;
                 ViewModel.Amplitude = AmplItem.Default;
             }
@@ -265,12 +290,12 @@ namespace EEGCleaning
             switch (ViewModel.ViewMode)
             {
                 case ModelViewMode.Record:
-                    PopulatedPlotModel(plotModel, ViewModel.VisibleRecord);
+                    PopulatedPlotModel(plotModel);
                     break;
 
                 case ModelViewMode.ICA:
-                    PopulatedPlotModel(plotModel, ViewModel.VisibleRecord);
-                    PopulatedPlotWeightsModel(plotWeightsModel, (ICARecord)ViewModel.VisibleRecord);
+                    PopulatedPlotModel(plotModel);
+                    PopulatedPlotWeightsModel(plotWeightsModel);
                     break;
             }
 
@@ -278,12 +303,10 @@ namespace EEGCleaning
 
             m_plotView.Model = plotModel;
             m_plotView.ActualController.UnbindAll();
-            //m_plotView.ActualController.BindMouseEnter(PlotCommands.HoverSnapTrack);
             m_plotView.ActualController.BindMouseDown(OxyMouseButton.Right, PlotCommands.PanAt);
 
             m_plotWeightsView.Model = plotWeightsModel;
             m_plotWeightsView.ActualController.UnbindAll();
-            //m_plotWeightsView.ActualController.BindMouseEnter(PlotCommands.HoverSnapTrack);
             m_plotWeightsView.ActualController.BindMouseDown(OxyMouseButton.Right, PlotCommands.PanAt);
 
             m_splitContainer.Panel2Collapsed = (ViewModel.ViewMode != ModelViewMode.ICA);
@@ -312,6 +335,26 @@ namespace EEGCleaning
             UpdateHScrollBar();
         }
 
+        internal void LoadRecord(string path, RecordFactoryOptions options)
+        {
+            var factory = new RecordFactory();
+
+            ViewModel.SourceRecord = factory.FromFile(path, options);
+            ViewModel.RecordOptions = options;
+            ViewModel.ProcessedRecord = ViewModel.SourceRecord.Clone();
+        }
+
+        internal void ResetRecord()
+        {
+            ViewModel.ProcessedRecord = ViewModel.SourceRecord.Clone();
+        }
+
+        internal void SaveRecord(string path, RecordRange? range = default)
+        {
+            var factory = new RecordFactory();
+            factory.ToFile(path, ViewModel.VisibleRecord.Clone(range));
+        }
+
         static IEnumerable<AnalyzerBase<ComponentArtifactResult>> BuildICAAnalyzers(ICARecord input)
         {
             var res = new List<AnalyzerBase<ComponentArtifactResult>>()
@@ -322,26 +365,14 @@ namespace EEGCleaning
             return res;
         }
 
-        void LoadRecord(string path, RecordFactoryOptions options)
+        void PopulatedPlotModel(PlotModel plotModel)
         {
-            var factory = new RecordFactory();
+            var record = ViewModel.VisibleRecord;
+            var leads = ViewModel.VisibleLeads;
 
-            ViewModel.SourceRecord = factory.FromFile(path, options);
-            ViewModel.RecordOptions = options;
-            ViewModel.ProcessedRecord = ViewModel.SourceRecord;
-        }
-
-        void SaveRecord(string path)
-        {
-            var factory = new RecordFactory();
-            factory.ToFile(path, ViewModel.VisibleRecord);
-        }
-
-        void PopulatedPlotModel(PlotModel plotModel, Record record)
-        {
-            plotModel.Axes.ToList().ForEach(a => UnsubsribePlotEvents(a));
-            plotModel.Series.ToList().ForEach(a => UnsubsribePlotEvents(a));
-            plotModel.Annotations.ToList().ForEach(a => UnsubsribePlotEvents(a));
+            plotModel.Axes.ToList().ForEach(UnsubsribePlotEvents);
+            plotModel.Series.ToList().ForEach(UnsubsribePlotEvents);
+            plotModel.Annotations.ToList().ForEach(UnsubsribePlotEvents);
 
             plotModel.Axes.Clear();
             plotModel.Series.Clear();
@@ -363,20 +394,20 @@ namespace EEGCleaning
             SubsribePlotEvents(xAxis);
             plotModel.Axes.Add(xAxis);
 
-            var maxSignalAmpl = record.GetMaximumAbsoluteValue();
+            var maxSignalAmpl = leads.GetMaximumAbsoluteValue();
             var signalRange = Tuple.Create(-maxSignalAmpl, maxSignalAmpl);
 
-            for (var leadIndex = 0; leadIndex < record.Leads.Count; leadIndex++)
+            for (int leadIndex = 0, leadCount = leads.Count(); leadIndex < leadCount; leadIndex++)
             {
-                var lead = record.Leads[leadIndex];
+                var lead = leads.ElementAt(leadIndex);
 
-                var leadAxisIndex = record.Leads.Count - leadIndex - 1;
+                var leadAxisIndex = leadCount - leadIndex - 1;
                 var leadAxis = new LinearAxis()
                 {
                     Title = lead.Name,
                     Key = lead.Name,
-                    StartPosition = (double)(leadAxisIndex) / record.Leads.Count,
-                    EndPosition = (double)(leadAxisIndex + 1) / record.Leads.Count,
+                    StartPosition = (double)(leadAxisIndex) / leadCount,
+                    EndPosition = (double)(leadAxisIndex + 1) / leadCount,
                     Position = AxisPosition.Left,
                     MajorGridlineStyle = LineStyle.Solid,
                     Minimum = signalRange.Item1,
@@ -386,6 +417,7 @@ namespace EEGCleaning
                     IsPanEnabled = false,
                     Tag = lead,
                 };
+                SubsribePlotEvents(leadAxis);
 
                 var leadSeries = new LineSeries()
                 {
@@ -417,21 +449,22 @@ namespace EEGCleaning
                         leadAlternativeSeries.Points.AddRange(alternativePoints);
                     }
 
-                    leadAnnotation = new PointAnnotation()
+                    if (componentLead.IsArtifact)
                     {
-                        Shape = componentLead.IsArtifact ? MarkerType.Square : MarkerType.Diamond,
-                        Fill = componentLead.IsArtifact ? OxyColors.DarkRed : OxyColors.DarkGreen,
-                        Size = 8,
-                        X = 0,
-                        Y = 0,
-                        XAxisKey = xAxis.Key,
-                        YAxisKey = leadAxis.Key,
-                        ClipByXAxis = false,
-                        ClipByYAxis = false,
-                        Tag = lead,
-                    };
+                        leadAnnotation = new ImageAnnotation()
+                        {
+                            ImageSource = ArtifactImage,
+                            Opacity = 0.8,
+                            Interpolate = true,
+                            X = new PlotLength(0, PlotLengthUnit.RelativeToPlotArea),
+                            Y = new PlotLength((double)(leadIndex + 0.5) / leadCount, PlotLengthUnit.RelativeToPlotArea),
+                            HorizontalAlignment = OxyPlot.HorizontalAlignment.Left,
+                            VerticalAlignment = OxyPlot.VerticalAlignment.Middle,
+                            Tag = lead,
+                        };
 
-                    SubsribePlotEvents(leadAnnotation);
+                        SubsribePlotEvents(leadAnnotation);
+                    }
                 }
 
                 plotModel.Axes.Add(leadAxis);
@@ -498,8 +531,11 @@ namespace EEGCleaning
             }
         }
 
-        void PopulatedPlotWeightsModel(PlotModel plotModel, ICARecord record)
+        void PopulatedPlotWeightsModel(PlotModel plotModel)
         {
+            var record = (ICARecord)ViewModel.VisibleRecord;
+            var leads = ViewModel.VisibleLeads;
+
             plotModel.Axes.Clear();
             plotModel.Series.Clear();
             plotModel.Annotations.Clear();
@@ -523,17 +559,17 @@ namespace EEGCleaning
 
             plotModel.Axes.Add(xAxis);
 
-            for (var componentIndex = 0; componentIndex < record.Leads.Count; componentIndex++)
+            for (int componentIndex = 0, componentCount = leads.Count(); componentIndex < componentCount; componentIndex++)
             {
-                var component = record.Leads[componentIndex];
+                var component = leads.ElementAt(componentIndex);
 
-                var componentAxisIndex = record.Leads.Count - componentIndex - 1;
+                var componentAxisIndex = componentCount - componentIndex - 1;
                 var componentAxis = new LinearAxis()
                 {
                     Title = component.Name,
                     Key = component.Name,
-                    StartPosition = (double)(componentAxisIndex) / record.Leads.Count,
-                    EndPosition = (double)(componentAxisIndex + 1) / record.Leads.Count,
+                    StartPosition = (double)(componentAxisIndex) / componentCount,
+                    EndPosition = (double)(componentAxisIndex + 1) / componentCount,
                     Position = AxisPosition.Left,
                     MajorGridlineStyle = LineStyle.Solid,
                     IsPanEnabled = false,
@@ -773,7 +809,7 @@ namespace EEGCleaning
 
                 ViewModel.Amplitude = amplitude;
 
-                var maxSignalAmpl = new Lazy<double>(ViewModel.VisibleRecord.GetMaximumAbsoluteValue);
+                var maxSignalAmpl = new Lazy<double>(ViewModel.VisibleLeads.GetMaximumAbsoluteValue);
 
                 foreach (var yAxis in PlotModelYAxes)
                 {
@@ -987,13 +1023,36 @@ namespace EEGCleaning
 
         void OnAutoClean(object sender, EventArgs e)
         {
-            var autoCleaner = new AutoArtifactCleaner() { Input = ViewModel.VisibleRecord };
-            var result = autoCleaner.Analyze();
-            if (result.Succeed)
+            using (var progressForm = new ProgressForm())
             {
-                ViewModel.ProcessedRecord = result.Output!;
-                UpdatePlot();
+                progressForm.Start += async form =>
+                {
+                    var taskResult = await Task.Run(() =>
+                    {
+                        var autoCleaner = new AutoArtifactCleaner() { Input = ViewModel.VisibleRecord };
+                        var result = autoCleaner.Analyze();
+                        return result;
+                    });
+
+                    if (taskResult.Succeed)
+                    {
+                        ViewModel.ProcessedRecord = taskResult.Output!;
+                        UpdatePlot();
+                    }
+
+                    form.DialogResult = DialogResult.OK;
+                };
+
+                progressForm.ShowDialog();
             }
+        }
+
+        void OnResetDataToOrigin(object sender, EventArgs e)
+        {
+            ResetRecord();
+
+            UpdatePlot(ModelViewMode.Record);
+            StateMachine.SwitchState(EEGRecordState.Name);
         }
 
         void OnLoadTestData(object sender, EventArgs e)
@@ -1015,7 +1074,7 @@ namespace EEGCleaning
 
             if (m_openFileDialog.ShowDialog(this) == DialogResult.OK)
             {
-                LoadRecord(m_openFileDialog.FileName, RecordFactoryOptions.DefaultEEGNoFilter);
+                LoadRecord(m_openFileDialog.FileName, RecordFactoryOptions.DefaultEEG);
 
                 UpdatePlot(ModelViewMode.Record);
                 StateMachine.SwitchState(EEGRecordState.Name);

@@ -20,7 +20,8 @@ namespace EEGCore.Data
 
         public int Duration { get; set; } = 0;
 
-        protected int To => From + Duration;
+        [JsonIgnore]
+        public int To => From + Duration;
 
         public bool Contains(RecordRange recordRange)
         {

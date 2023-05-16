@@ -5,11 +5,21 @@ using EEGCore.Utilities;
 
 namespace EEGCore.Data
 {
+
     public class RecordFactoryOptions
     {
+        public enum AcceptableLeadTypes
+        {
+            AnyEEG,
+            StrictEEG,
+            Any
+        }
+
         public bool ZeroMean { get; set; } = false;
 
         public bool SortLeads { get; set; } = false;
+
+        public AcceptableLeadTypes LeadTypes { get; set; } = AcceptableLeadTypes.Any;
 
         public double? CutOffLowFreq { get; set; } = null;
 
@@ -19,6 +29,7 @@ namespace EEGCore.Data
         {
             ZeroMean = true,
             SortLeads = true,
+            LeadTypes = AcceptableLeadTypes.StrictEEG,
             CutOffLowFreq = 0.3,
             CutOffHighFreq = 45,
         };
@@ -27,6 +38,7 @@ namespace EEGCore.Data
         {
             ZeroMean = true,
             SortLeads = true,
+            LeadTypes = AcceptableLeadTypes.StrictEEG,
         };
 
         public static RecordFactoryOptions DefaultEmpty => new RecordFactoryOptions();
@@ -48,6 +60,11 @@ namespace EEGCore.Data
                         deserializer = new ArffSerializer();
                         break;
                     }
+                case EDFSerializer.EDFExtension:
+                    {
+                        deserializer = new EDFSerializer();
+                        break;
+                    }
             }
 
             if (deserializer == default)
@@ -67,13 +84,24 @@ namespace EEGCore.Data
                 {
                     var eegLead = new EEGLead()
                     {
-                        Name = res.Leads[leadIndex].Name,
+                        Name = DataUtilities.CleanEEGLeadName(res.Leads[leadIndex].Name),
                         Samples = res.Leads[leadIndex].Samples,
                         LeadType = eegType,
                     };
 
                     res.Leads[leadIndex] = eegLead;
                 }
+            }
+
+            switch (options?.LeadTypes)
+            {
+                case RecordFactoryOptions.AcceptableLeadTypes.AnyEEG:
+                    res.Leads = res.Leads.Where(l => l is EEGLead).ToList();
+                    break;
+
+                case RecordFactoryOptions.AcceptableLeadTypes.StrictEEG:
+                    res.Leads = res.Leads.Where(l => (l is EEGLead) && DataUtilities.GetEEGLeadCodeByName(l.Name) != default).ToList();
+                    break;
             }
 
             if (options?.ZeroMean ?? false)
