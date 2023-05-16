@@ -15,6 +15,7 @@ namespace EEGCleaning.UI.MainView.StateMachine
                 MenuModelLeadArtifact,
                 MenuModelReferenceArtifact,
                 new ToolStripSeparator(),
+                MenuShowOnlyLead,
                 MenuHideLead,
                 MenuShowAllLeads
             });
@@ -29,6 +30,7 @@ namespace EEGCleaning.UI.MainView.StateMachine
         ContextMenuStrip Menu { get; init; } = new ContextMenuStrip();
         ToolStripMenuItem MenuModelLeadArtifact { get; init; } = new ToolStripMenuItem("Add Electrode Artifact");
         ToolStripMenuItem MenuModelReferenceArtifact { get; init; } = new ToolStripMenuItem("Add Reference Artifact");
+        ToolStripMenuItem MenuShowOnlyLead { get; init; } = new ToolStripMenuItem("Show Only");
         ToolStripMenuItem MenuHideLead { get; init; } = new ToolStripMenuItem("Hide");
         ToolStripMenuItem MenuShowAllLeads { get; init; } = new ToolStripMenuItem("Show All");
 
@@ -61,6 +63,7 @@ namespace EEGCleaning.UI.MainView.StateMachine
 
             MenuModelLeadArtifact.Click += OnMenuLeadArtifactItemClicked;
             MenuModelReferenceArtifact.Click += OnMenuReferenceArtifactItemClicked;
+            MenuShowOnlyLead.Click += OnMenuShowOnlyLeadItemClicked;
             MenuHideLead.Click += OnMenuHideLeadItemClicked;
             MenuShowAllLeads.Click += OnMenuShowAllLeadsItemClicked;
 
@@ -74,6 +77,7 @@ namespace EEGCleaning.UI.MainView.StateMachine
         {
             MenuModelLeadArtifact.Click -= OnMenuLeadArtifactItemClicked;
             MenuModelReferenceArtifact.Click -= OnMenuReferenceArtifactItemClicked;
+            MenuShowOnlyLead.Click -= OnMenuShowOnlyLeadItemClicked;
             MenuHideLead.Click -= OnMenuHideLeadItemClicked;
             MenuShowAllLeads.Click -= OnMenuShowAllLeadsItemClicked;
 
@@ -133,6 +137,15 @@ namespace EEGCleaning.UI.MainView.StateMachine
                     StateMachine.MainView.UpdatePlot();
                 }
             }
+        }
+
+        void OnMenuShowOnlyLeadItemClicked(object? sender, EventArgs e)
+        {
+            HiddenLeadNames.Clear();
+            HiddenLeadNames.AddRange(VisibleLeads.Where(l => l.Name != EEGLead.Name).Select(l => l.Name));
+
+            StateMachine.MainView.UpdatePlot();
+            StateMachine.SwitchState(PrevieousStateName);
         }
 
         void OnMenuHideLeadItemClicked(object? sender, EventArgs e)

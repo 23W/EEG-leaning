@@ -1,4 +1,5 @@
 ﻿using EEGCore.Data;
+using System.Windows.Forms;
 
 namespace EEGCleaning.UI.MainView.StateMachine
 {
@@ -17,6 +18,8 @@ namespace EEGCleaning.UI.MainView.StateMachine
                 new ToolStripSeparator(),
                 MenuEditItem,
                 MenuDeleteItem,
+                new ToolStripSeparator(),
+                MenuSaveItem
             });
         }
 
@@ -31,6 +34,7 @@ namespace EEGCleaning.UI.MainView.StateMachine
         ToolStripMenuItem MenuNormalizedICAItem { get; init; } = new ToolStripMenuItem("Normalize Power ICA");
         ToolStripMenuItem MenuEditItem { get; init; } = new ToolStripMenuItem("Edit");
         ToolStripMenuItem MenuDeleteItem { get; init; } = new ToolStripMenuItem("Delete");
+        ToolStripMenuItem MenuSaveItem { get; init; } = new ToolStripMenuItem("Save");
 
         Point Point { get; set; } = Point.Empty;
 
@@ -57,6 +61,7 @@ namespace EEGCleaning.UI.MainView.StateMachine
             MenuNormalizedICAItem.Click += OnRunNormalizedICA;
             MenuEditItem.Click += OnEditRange;
             MenuDeleteItem.Click += OnDeleteRange;
+            MenuSaveItem.Click += OnSaveRange;
 
             Menu.Show(StateMachine.MainView, Point);
             Menu.Closed += OnMenuClosed;
@@ -70,6 +75,7 @@ namespace EEGCleaning.UI.MainView.StateMachine
             MenuNormalizedICAItem.Click -= OnRunNormalizedICA;
             MenuEditItem.Click -= OnEditRange;
             MenuDeleteItem.Click -= OnDeleteRange;
+            MenuSaveItem.Click -= OnSaveRange;
 
             Menu.Closed -= OnMenuClosed;
             Menu.Hide();
@@ -123,6 +129,22 @@ namespace EEGCleaning.UI.MainView.StateMachine
             record.Ranges.Remove(Range);
             view.UpdatePlot();
 
+            StateMachine.SwitchState(PrevieousStateName);
+        }
+
+        void OnSaveRange(object? sender, EventArgs e)
+        {
+            var view = StateMachine.MainView;
+            var record = view.ViewModel.ProcessedRecord;
+
+            view.SaveFileDialog.InitialDirectory = Directory.GetCurrentDirectory();
+
+            if (view.SaveFileDialog.ShowDialog(view) == DialogResult.OK)
+            {
+                view.SaveRecord(view.SaveFileDialog.FileName, Range);
+            }
+
+            view.UpdatePlot();
             StateMachine.SwitchState(PrevieousStateName);
         }
 

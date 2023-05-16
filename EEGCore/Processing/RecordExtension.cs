@@ -1,16 +1,36 @@
 ﻿using EEGCore.Data;
 using EEGCore.Processing.Filtering;
 using EEGCore.Utilities;
+using System.Diagnostics;
 using System.Text.Json;
 
 namespace EEGCore.Processing
 {
     public static class RecordExtension
     {
-        public static T Clone<T>(this T record) where T : Record, new()
+        public static T Clone<T>(this T record, RecordRange? range = default) where T : Record, new()
         {
-            var json = ToJson(record);
-            var clone = JsonSerializer.Deserialize<T>(json);
+            var clone = new T();
+
+            if (range != default)
+            {
+                Debug.Assert(range.To < record.Duration);
+                clone = record.Clone();
+                clone.Ranges.Clear();
+
+                foreach (var lead in clone.Leads)
+                {
+                    lead.Samples = lead.Samples.Skip(range.From)
+                                               .Take(range.Duration)
+                                               .ToArray();
+                }
+            }
+            else
+            {
+                var json = ToJson(record);
+                clone = JsonSerializer.Deserialize<T>(json);
+            }
+
             return clone ?? new T();
         }
 

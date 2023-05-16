@@ -14,6 +14,7 @@ using OxyPlot.Series;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text.Json;
+using System.Windows.Forms;
 
 namespace EEGCleaning
 {
@@ -35,6 +36,7 @@ namespace EEGCleaning
         internal ToolStripItem StandardICAControl => m_standradICAToolStripMenuItem;
         internal ToolStripItem NormalizedICAControl => m_normalizedICAToolStripMenuItem;
         internal Button ICAComposeControl => m_icaComposeButton;
+        internal SaveFileDialog SaveFileDialog => m_saveFileDialog;
 
         #endregion
 
@@ -193,6 +195,20 @@ namespace EEGCleaning
 
         internal void RunICADecompose(RecordRange? range = default, bool useVisibleRecord = true, bool normalizePower = false, bool analyzeComponents = true)
         {
+            using (var progressForm = new ProgressForm())
+            {
+                progressForm.Start += async form =>
+                {
+                    await Task.Run(() => DoICADecompose(range, useVisibleRecord, normalizePower, analyzeComponents));
+                    form.DialogResult = DialogResult.OK;
+                };
+
+                progressForm.ShowDialog();
+            }
+        }
+
+        void DoICADecompose(RecordRange? range, bool useVisibleRecord, bool normalizePower, bool analyzeComponents)
+        {
             var ica = new FastICA()
             {
                 MaxIterationCount = 10000,
@@ -287,12 +303,10 @@ namespace EEGCleaning
 
             m_plotView.Model = plotModel;
             m_plotView.ActualController.UnbindAll();
-            //m_plotView.ActualController.BindMouseEnter(PlotCommands.HoverSnapTrack);
             m_plotView.ActualController.BindMouseDown(OxyMouseButton.Right, PlotCommands.PanAt);
 
             m_plotWeightsView.Model = plotWeightsModel;
             m_plotWeightsView.ActualController.UnbindAll();
-            //m_plotWeightsView.ActualController.BindMouseEnter(PlotCommands.HoverSnapTrack);
             m_plotWeightsView.ActualController.BindMouseDown(OxyMouseButton.Right, PlotCommands.PanAt);
 
             m_splitContainer.Panel2Collapsed = (ViewModel.ViewMode != ModelViewMode.ICA);
@@ -321,17 +335,7 @@ namespace EEGCleaning
             UpdateHScrollBar();
         }
 
-        static IEnumerable<AnalyzerBase<ComponentArtifactResult>> BuildICAAnalyzers(ICARecord input)
-        {
-            var res = new List<AnalyzerBase<ComponentArtifactResult>>()
-            {
-                new ElectrodeArtifactDetector() { Input = input },
-                new EyeArtifactDetector() { Input = input },
-            };
-            return res;
-        }
-
-        void LoadRecord(string path, RecordFactoryOptions options)
+        internal void LoadRecord(string path, RecordFactoryOptions options)
         {
             var factory = new RecordFactory();
 
@@ -340,15 +344,25 @@ namespace EEGCleaning
             ViewModel.ProcessedRecord = ViewModel.SourceRecord.Clone();
         }
 
-        void ResetRecord()
+        internal void ResetRecord()
         {
             ViewModel.ProcessedRecord = ViewModel.SourceRecord.Clone();
         }
 
-        void SaveRecord(string path)
+        internal void SaveRecord(string path, RecordRange? range = default)
         {
             var factory = new RecordFactory();
-            factory.ToFile(path, ViewModel.VisibleRecord);
+            factory.ToFile(path, ViewModel.VisibleRecord.Clone(range));
+        }
+
+        static IEnumerable<AnalyzerBase<ComponentArtifactResult>> BuildICAAnalyzers(ICARecord input)
+        {
+            var res = new List<AnalyzerBase<ComponentArtifactResult>>()
+            {
+                new ElectrodeArtifactDetector() { Input = input },
+                new EyeArtifactDetector() { Input = input },
+            };
+            return res;
         }
 
         void PopulatedPlotModel(PlotModel plotModel)
@@ -1060,7 +1074,7 @@ namespace EEGCleaning
 
             if (m_openFileDialog.ShowDialog(this) == DialogResult.OK)
             {
-                LoadRecord(m_openFileDialog.FileName, RecordFactoryOptions.DefaultEEGNoFilter);
+                LoadRecord(m_openFileDialog.FileName, RecordFactoryOptions.DefaultEEG);
 
                 UpdatePlot(ModelViewMode.Record);
                 StateMachine.SwitchState(EEGRecordState.Name);
